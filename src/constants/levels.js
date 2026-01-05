@@ -1948,6 +1948,90 @@ All elements working together.`,
     },
     exercises: [
       {
+        id: 'workflow',
+        title: { es: 'WORKFLOW: PATTERN & SONG', en: 'WORKFLOW: PATTERN & SONG' },
+        text: {
+          es: `Un track no es un solo loop eterno. Necesitas cambios.
+Intro (P01) → Verso (P02) → Build (P03) → Drop (P04).
+
+Para lograr esto, debes dominar el arte de gestionar patrones.
+Aquí es donde la RD-9 Virtual y la Física tienen caminos distintos.`,
+          en: `A track isn't just one eternal loop. You need changes.
+Intro (P01) → Verse (P02) → Build (P03) → Drop (P04).
+
+To achieve this, you must master the art of pattern management.
+Here is where the Virtual and Physical RD-9 diverge.`,
+        },
+        tech: [
+          {
+            es: 'VIRTUAL RD-9 (Esta App):',
+            en: 'VIRTUAL RD-9 (This App):'
+          },
+          {
+            es: '• SELECCIONAR: En modo PATTERN, usa los botones < y > en la sección MODE para navegar (P01-P16).',
+            en: '• SELECT: In PATTERN mode, use the < and > buttons in the MODE section to navigate (P01-P16).'
+          },
+          {
+            es: '• GUARDAR: Pulsa SAVE. Se guarda instantáneamente en el slot actual.',
+            en: '• SAVE: Press SAVE. Instantly saves to the current slot.'
+          },
+          {
+            es: '• BORRAR: Click en ERASE limpia el patrón actual. Doble-Click en ERASE borra el slot de la memoria.',
+            en: '• ERASE: Click ERASE clears current pattern. Double-Click ERASE deletes the slot from storage.'
+          },
+          {
+            es: '• COPIAR: Pulsa COPY. El patrón actual se guarda en la memoria temporal.',
+            en: '• COPY: Press COPY. The current pattern is saved to temporary memory.'
+          },
+          {
+            es: '• PEGAR: Ve al pattern destino (con < >), pulsa PASTE y luego SAVE para confirmar.',
+            en: '• PASTE: Go to destination pattern (with < >), press PASTE, then SAVE to confirm.'
+          },
+          {
+            es: '─── SONG MODE (MODO CANCIÓN) ───',
+            en: '─── SONG MODE ───'
+          },
+          {
+            es: 'VIRTUAL RD-9:',
+            en: 'VIRTUAL RD-9:'
+          },
+          {
+            es: '• (Próximamente): Esta función estará disponible en una futura actualización.',
+            en: '• (Coming Soon): This feature will be available in a future update.'
+          },
+          {
+            es: 'PHYSICAL RD-9:',
+            en: 'PHYSICAL RD-9:'
+          },
+          {
+            es: '• Pulsa SONG. Gira encoder para elegir slot de canción. Pulsa ENTER.',
+            en: '• Press SONG. Turn encoder to choose song slot. Press ENTER.'
+          },
+          {
+            es: '• Elige Pattern para el paso 1. Gira DATA para elegir REPETICIONES. Pulsa WRITE/NEXT para ir al paso 2.',
+            en: '• Choose Pattern for step 1. Turn DATA to choose REPEATS. Press WRITE/NEXT to go to step 2.'
+          },
+          {
+            es: '─── VS ───',
+            en: '─── VS ───'
+          },
+          {
+            es: 'PHYSICAL RD-9 (Hardware Real):',
+            en: 'PHYSICAL RD-9 (Real Hardware):'
+          },
+          {
+            es: '• SELECCIONAR PATTERN: Mantén pulsado PATTERN y presiona una tecla de paso (1-16).',
+            en: '• SELECT PATTERN: Hold PATTERN and press a step key (1-16).'
+          },
+          {
+            es: '• COPIAR/PEGAR: El flujo es más "físico". Mantén COPY, pulsa el Step de origen, y sin soltar COPY, pulsa el Step de destino.',
+            en: '• COPY/PASTE: Flow is more "physical". Hold COPY, press source Step, and without releasing COPY, press destination Step.'
+          },
+        ],
+        type: 'theory',
+        check: (s) => true,
+      },
+      {
         id: 'full-pat',
         title: { es: 'PATTERN COMPLETO', en: 'FULL PATTERN' },
         text: {

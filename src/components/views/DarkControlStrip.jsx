@@ -241,7 +241,7 @@ export function DarkControlStrip({
       )}
 
       {/* Section 5: BANK (for 64-step patterns) */}
-      {patternLength > 16 && (
+      {patternLength > 16 && mode !== "step" && (
         <div className="flex items-center border-l border-[#444] pl-5 pr-5">
           <div className="flex flex-col gap-2">
             {/* Bank LEDs */}

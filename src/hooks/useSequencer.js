@@ -202,6 +202,36 @@ export function useSequencer(onTrigger) {
     setFlam(createEmptyFlam());
   }, []);
 
+  // Load full sequencer state
+  const loadState = useCallback((newState) => {
+    if (!newState) return;
+    
+    // Revive Sets from JSON/Storage if necessary
+    const reviveSet = (data) => {
+       if (!data) return {};
+       // If it's an object with voice keys
+       const result = {};
+       Object.keys(data).forEach(v => {
+           if (Array.isArray(data[v])) result[v] = new Set(data[v]);
+           else if (data[v] instanceof Set) result[v] = data[v];
+           else result[v] = new Set();
+       });
+       return result;
+    }
+
+    if (newState.pattern) setPattern(newState.pattern);
+    if (newState.accents) setAccents(newState.accents);
+    if (newState.probability) setProbability(newState.probability);
+    if (newState.flam) setFlam(reviveSet(newState.flam));
+    if (newState.flamWidth !== undefined) setFlamWidth(newState.flamWidth);
+    if (newState.repeatDivision !== undefined) setRepeatDivision(newState.repeatDivision);
+    if (newState.stepRepeatActive !== undefined) setStepRepeatActive(newState.stepRepeatActive);
+    if (newState.bpm !== undefined) setBpm(newState.bpm);
+    if (newState.swing !== undefined) setSwing(newState.swing);
+    if (newState.patternLength !== undefined) setPatternLength(newState.patternLength);
+    if (newState.voiceLengths) setVoiceLengths(newState.voiceLengths);
+  }, []);
+
   // Transport controls
   const start = useCallback(() => {
     setPlaying(true);
@@ -321,6 +351,7 @@ export function useSequencer(onTrigger) {
     toggleStep,
     toggleAccent,
     clearPattern,
+    loadState,
     start,
     stop,
     toggle,

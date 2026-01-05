@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
 const STORAGE_KEY = 'rd9-playground-patterns';
-const MAX_SLOTS = 4;
+const MAX_SLOTS = 16;
 
 // Get all patterns from storage
 const getPatterns = () => {

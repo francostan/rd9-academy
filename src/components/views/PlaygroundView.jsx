@@ -14,7 +14,7 @@ function ScaleWrapper({ children }) {
 
   // The "XL" breakpoint dimensions we want to preserve/target
   // 1512x982 is the default scaled resolution for a 14" MacBook Pro
-  const TARGET_WIDTH = 1512; 
+  const TARGET_WIDTH = 1512;
   const TARGET_HEIGHT = 900;
 
   useEffect(() => {
@@ -36,16 +36,16 @@ function ScaleWrapper({ children }) {
       // Only scale DOWN if the screen is smaller than our target layout
       const scaleX = width < TARGET_WIDTH ? width / TARGET_WIDTH : 1;
       const scaleY = height < TARGET_HEIGHT ? height / TARGET_HEIGHT : 1;
-      
+
       const newScale = Math.min(scaleX, scaleY);
 
       setScale(newScale);
       setIsScaled(newScale < 1);
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
     handleResize(); // Initial calculation
-    
+
     // Resize observer for more robust handling
     const observer = new ResizeObserver(handleResize);
     if (containerRef.current && containerRef.current.parentElement) {
@@ -53,7 +53,7 @@ function ScaleWrapper({ children }) {
     }
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       observer.disconnect();
     };
   }, []);
@@ -62,11 +62,13 @@ function ScaleWrapper({ children }) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-[#1a1a1a] text-[#e2e2df] p-8 text-center animate-in fade-in duration-300">
         <div className="text-6xl mb-6 opacity-80">⟳</div>
-        <h2 className="text-xl font-bold font-mono tracking-widest mb-2 text-orange-500">PLEASE ROTATE</h2>
+        <h2 className="text-xl font-bold font-mono tracking-widest mb-2 text-orange-500">
+          PLEASE ROTATE
+        </h2>
         <p className="text-xs text-gray-400 font-mono uppercase tracking-wide max-w-[200px] leading-relaxed mb-8">
           The RD-9 requires landscape orientation for the best experience.
         </p>
-        <button 
+        <button
           onClick={() => window.location.reload()}
           className="px-6 py-2 border-2 border-[#555] rounded bg-[#222] text-[#ccc] text-xs font-bold tracking-wider active:bg-[#333] active:translate-y-0.5 transition-all shadow-lg"
         >
@@ -77,22 +79,22 @@ function ScaleWrapper({ children }) {
   }
 
   return (
-    <div 
-      className="w-full h-full flex items-center justify-center overflow-hidden bg-[#1a1a1a]" 
-    >
-      <div 
+    <div className="w-full h-full flex items-center justify-center overflow-hidden bg-[#1a1a1a]">
+      <div
         ref={containerRef}
-        style={{ 
+        style={{
           // If scaling, increase the internal width so that when scaled down, it still fills the screen.
           // internalWidth * scale = parentWidth  =>  internalWidth = parentWidth / scale
-          width: isScaled && parentSize.width ? parentSize.width / scale : '100%', 
-          height: isScaled && parentSize.height ? parentSize.height / scale : '100%', 
-          
-          transform: isScaled ? `scale(${scale})` : 'none', 
-          transformOrigin: 'center center',
+          width:
+            isScaled && parentSize.width ? parentSize.width / scale : "100%",
+          height:
+            isScaled && parentSize.height ? parentSize.height / scale : "100%",
+
+          transform: isScaled ? `scale(${scale})` : "none",
+          transformOrigin: "center center",
           flexShrink: 0,
         }}
-        className={`flex flex-col relative bg-[#e2e2df] shadow-2xl ${isScaled ? '' : 'min-w-[1280px]'}`}
+        className={`flex flex-col relative bg-[#e2e2df] shadow-2xl ${isScaled ? "" : "min-w-[1280px]"}`}
       >
         {children}
       </div>
@@ -207,9 +209,7 @@ const VOICE_SECTIONS = [
         { v: "OH", p: "OH LEVEL" },
         { v: "CH", p: "CH DECAY" },
       ],
-      [
-        { v: "OH", p: "OH DECAY" },
-      ],
+      [{ v: "OH", p: "OH DECAY" }],
     ],
     buttons: [
       { v: "CH", label: "CLOSED" },
@@ -402,17 +402,18 @@ export function PlaygroundView({ onBack }) {
   const paramsRef = useRef(voiceParams);
   const activeChRef = useRef(null); // Track active CH node for OH choke behavior
 
-  const { save, load, getSlots } = usePatternStorage();
+  const { save, load, clear: clearStorage, getSlots } = usePatternStorage();
   const [slots, setSlots] = useState([]);
   const [saveMode, setSaveMode] = useState(false);
   const [copying, setCopying] = useState(false);
+  const [pasting, setPasting] = useState(false); // Visual feedback for paste
+  const clipboardRef = useRef(null); // Internal clipboard
+
   const [editingDisplay, setEditingDisplay] = useState(false);
   const [editValue, setEditValue] = useState("");
   const [dataMode, setDataMode] = useState("TEMPO");
-  const [mode, setMode] = useState("step"); // 'step' | 'pattern' | 'song'
-  const [currentSlot, setCurrentSlot] = useState(0); // Active pattern slot (0-3)
-  const [song, setSong] = useState([]); // Song structure: [{slot, repeats}]
-  const [songStep, setSongStep] = useState(0); // Current position in song
+  const [mode, setMode] = useState("step"); // 'step' | 'pattern'
+  const [currentSlot, setCurrentSlot] = useState(0); // Active pattern slot (0-15)
   const [mutedVoices, setMutedVoices] = useState(new Set()); // Set of muted voice IDs
   const [soloedVoices, setSoloedVoices] = useState(new Set()); // Set of soloed voice IDs
   const [stepPage, setStepPage] = useState(0); // 0=steps 1-16, 1=17-32, 2=33-48, 3=49-64
@@ -439,23 +440,24 @@ export function PlaygroundView({ onBack }) {
       if (soloedVoices.size > 0 && !soloedVoices.has(voice)) return;
 
       // OH/CH Choke: Open hat cuts off closed hat
-      if (voice === 'OH' && activeChRef.current) {
+      if (voice === "OH" && activeChRef.current) {
         activeChRef.current.stop();
         activeChRef.current = null;
       }
 
       const params = paramsRef.current[voice];
-      const voiceLevel = voice === 'OH' ? params.ohlevel : params.level;
+      const voiceLevel = voice === "OH" ? params.ohlevel : params.level;
 
       // Map special params for Cymbals/Hats
       let voiceTune = params.tune;
-      if (voice === 'OH') voiceTune = paramsRef.current['CH'].tune; // OH shares CH tune
-      else if (voice === 'CR') voiceTune = params.crashtune;
-      else if (voice === 'RD') voiceTune = params.ridetune;
+      if (voice === "OH")
+        voiceTune = paramsRef.current["CH"].tune; // OH shares CH tune
+      else if (voice === "CR") voiceTune = params.crashtune;
+      else if (voice === "RD") voiceTune = params.ridetune;
 
       let voiceDecay = params.decay;
-      if (voice === 'CH') voiceDecay = params.chdecay;
-      else if (voice === 'OH') voiceDecay = params.ohdecay;
+      if (voice === "CH") voiceDecay = params.chdecay;
+      else if (voice === "OH") voiceDecay = params.ohdecay;
 
       const result = play(voice, {
         volume: voiceLevel / 100,
@@ -470,7 +472,7 @@ export function PlaygroundView({ onBack }) {
       });
 
       // Track CH nodes for choking by OH
-      if (voice === 'CH' && result) {
+      if (voice === "CH" && result) {
         activeChRef.current = result;
       }
     },
@@ -505,9 +507,34 @@ export function PlaygroundView({ onBack }) {
     toggleStep,
     toggleAccent,
     clearPattern,
+    loadState,
     toggle,
     stop,
   } = useSequencer(handleTrigger);
+
+  // Load Pattern function
+  const loadPattern = useCallback((slotIndex) => {
+    const data = load(slotIndex + 1); // Storage is 1-based
+    if (data) {
+       loadState({
+        pattern: data.pattern,
+        accents: data.accents,
+        probability: data.probability,
+        flam: data.flam,
+        flamWidth: data.flamWidth,
+        bpm: data.bpm,
+        swing: data.swing,
+        patternLength: data.patternLength || 16,
+        voiceLengths: data.voiceLengths, // Restore polymeter lengths
+       });
+
+       if (data.voiceParams) {
+         setVoiceParams(data.voiceParams);
+       }
+    } else {
+      clearPattern();
+    }
+  }, [load, loadState, clearPattern]);
 
   // Auto-scroll: change bank when playback crosses page boundary
   useEffect(() => {
@@ -520,19 +547,59 @@ export function PlaygroundView({ onBack }) {
     }
   }, [step, playing, autoScroll, stepPage, patternLength]);
 
-  // STEP mode = 16 steps only. Reset when switching to STEP.
-  useEffect(() => {
-    if (mode === "step" && patternLength > 16) {
-      setPatternLength(16);
-      setStepPage(0);
-    }
-  }, [mode, patternLength, setPatternLength]);
-
+  // Copy to internal clipboard
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(JSON.stringify({ pattern, voiceParams }));
+    clipboardRef.current = {
+      pattern,
+      accents,
+      voiceParams,
+      bpm,
+      swing,
+      patternLength,
+      probability,
+      flam,
+      flamWidth,
+    };
     setCopying(true);
     setTimeout(() => setCopying(false), 150);
-  }, [pattern, voiceParams]);
+  }, [
+    pattern,
+    accents,
+    voiceParams,
+    bpm,
+    swing,
+    patternLength,
+    probability,
+    flam,
+    flamWidth,
+  ]);
+
+  // Paste from internal clipboard
+  const handlePaste = useCallback(() => {
+    if (!clipboardRef.current) return;
+
+    const data = clipboardRef.current;
+
+    // Restore Sequencer State
+    loadState({
+      pattern: data.pattern,
+      accents: data.accents,
+      probability: data.probability,
+      flam: data.flam,
+      flamWidth: data.flamWidth,
+      bpm: data.bpm,
+      swing: data.swing,
+      patternLength: data.patternLength,
+    });
+
+    // Restore Voice Params
+    if (data.voiceParams) {
+      setVoiceParams(data.voiceParams);
+    }
+
+    setPasting(true);
+    setTimeout(() => setPasting(false), 150);
+  }, [loadState]);
 
   // --- TAP TEMPO LOGIC ---
   const tapTimes = useRef([]);
@@ -569,23 +636,36 @@ export function PlaygroundView({ onBack }) {
     toggle();
   };
 
-  const getDataValue = () => {
-    if (dataMode === "SWING") return swing;
-    if (dataMode === "FLAM") return flamWidth;
-    if (dataMode === "PROB") return 50; // Display only, prob is per-step
-    return bpm;
-  };
-  const setDataValue = (v) => {
-    if (dataMode === "SWING") setSwing(Math.max(0, Math.min(100, v)));
-    else if (dataMode === "FLAM") setFlamWidth(Math.max(0, Math.min(24, v)));
-    else if (dataMode === "PROB") { /* Probability is per-step, not global */ }
-    else setBpm(Math.max(60, Math.min(200, v)));
-  };
+    const getDataValue = () => {
+
+      if (dataMode === "SWING") return swing;
+
+      if (dataMode === "FLAM") return flamWidth;
+
+      if (dataMode === "PROB") return 50; // Display only
+
+      return bpm;
+
+    };
+
+    const setDataValue = (v) => {
+
+      if (dataMode === "SWING") setSwing(Math.max(0, Math.min(100, v)));
+
+      else if (dataMode === "FLAM") setFlamWidth(Math.max(0, Math.min(24, v)));
+
+      else if (dataMode === "PROB") { /* Probability is per-step */ }
+
+      else setBpm(Math.max(60, Math.min(200, v)));
+
+    };
 
   const getDisplayValue = () => {
     if (saveMode) return "SAV";
-    if (mode === "pattern") return `P0${currentSlot + 1}`;
-    if (mode === "song") return song.length > 0 ? `S${song.length}` : "SNG";
+    if (copying) return "CPY";
+    if (pasting) return "PST";
+    if (mode === "pattern")
+      return `P${(currentSlot + 1).toString().padStart(2, "0")}`;
     if (dataMode === "SWING") return swing;
     if (dataMode === "FLAM") return flamWidth;
     if (dataMode === "PROB") return "PRB";
@@ -612,7 +692,7 @@ export function PlaygroundView({ onBack }) {
 
   return (
     <ScaleWrapper>
-      <div className="flex flex-col h-full w-full px-0 pt-2 overflow-x-auto bg-[#e2e2df] select-none text-[#1a1a1a]">
+      <div className="flex flex-col h-full w-full px-0 pt-2 mt-4 overflow-x-auto bg-[#e2e2df] select-none text-[#1a1a1a]">
         {/* === TOP HEADER STRIP === */}
         <div className="flex items-end justify-between px-6 pt-3 pb-2 border-b border-[#a3a3a3] bg-gradient-to-b from-[#e8e8e5] to-[#dcdcd9]">
           <div className="flex items-end gap-6">
@@ -761,7 +841,12 @@ export function PlaygroundView({ onBack }) {
               {/* Bottom Half: Wave Designer */}
               <div className="flex justify-between items-end relative z-0 h-[50%]">
                 <div className="flex flex-col items-center z-10">
-                  <Knob label="ATTACK" value={waveAttack} onChange={setWaveAttack} size={40} />
+                  <Knob
+                    label="ATTACK"
+                    value={waveAttack}
+                    onChange={setWaveAttack}
+                    size={40}
+                  />
                 </div>
 
                 <div className="flex flex-col items-center z-10">
@@ -783,12 +868,25 @@ export function PlaygroundView({ onBack }) {
               <div className="flex justify-between gap-2 mt-1">
                 <button
                   onClick={() => {
+                    // Serialize Sets to Arrays for storage
+                    const serializedFlam = {};
+                    if (flam) {
+                      Object.keys(flam).forEach((k) => {
+                        serializedFlam[k] = Array.from(flam[k] || []);
+                      });
+                    }
+
                     save(currentSlot + 1, {
                       pattern,
                       accents,
                       voiceParams,
                       bpm,
                       swing,
+                      probability,
+                      flam: serializedFlam,
+                      flamWidth,
+                      patternLength,
+                      voiceLengths
                     });
                     setSaveMode(true);
                     setTimeout(() => setSaveMode(false), 500);
@@ -805,12 +903,25 @@ export function PlaygroundView({ onBack }) {
                 </button>
                 <button
                   onClick={clearPattern}
+                  onDoubleClick={() => {
+                    clearStorage(currentSlot + 1);
+                    clearPattern();
+                    // Visual feedback (flash SAVE light/text maybe? or just rely on clear)
+                    // Let's flash the button itself by reusing saveMode or adding a new state? 
+                    // Reusing saveMode "SAV" display is simplest feedback that "Storage action happened"
+                    setSaveMode(true);
+                    setTimeout(() => setSaveMode(false), 500);
+                  }}
+                  title="Click to Clear Pattern (Memory) / Double-Click to Delete from Storage"
                   className="flex-1 h-8 bg-[#222] text-[#888] text-[7px] font-bold border-2 border-[#666] rounded-[2px] shadow-inner active:translate-y-[1px]"
                 >
                   ERASE
                 </button>
-                <button className="flex-1 h-8 bg-[#222] text-[#888] text-[7px] font-bold border-2 border-[#666] rounded-[2px] shadow-inner active:translate-y-[1px]">
-                  DUMP
+                <button
+                  onClick={handlePaste}
+                  className={`flex-1 h-8 text-[7px] font-bold border-2 rounded-[2px] shadow-inner active:translate-y-[1px] ${pasting ? "bg-blue-600 text-white border-blue-700" : "bg-[#222] text-[#888] border-[#666]"}`}
+                >
+                  PASTE
                 </button>
               </div>
             </div>
@@ -822,52 +933,61 @@ export function PlaygroundView({ onBack }) {
               </div>
               <div className="flex justify-between gap-2 mt-1">
                 <button
-                  onClick={() => setMode("song")}
-                  className={`flex-1 h-8 text-[7px] font-bold border-2 rounded-[2px] shadow-md ${mode === "song" ? "bg-yellow-400 text-black border-yellow-600" : "bg-[#222] text-[#888] border-[#666]"}`}
+                  disabled
+                  title="Coming Soon"
+                  className="flex-1 h-8 text-[7px] font-bold border-2 rounded-[2px] shadow-md bg-[#222] text-[#888] border-[#666] opacity-50 cursor-not-allowed"
                 >
                   SONG
                 </button>
                 <button
-                  onClick={() => setMode("pattern")}
+                  onClick={() => {
+                    setMode("pattern");
+                    loadPattern(currentSlot); // Reload from storage
+                  }}
                   className={`flex-1 h-8 text-[7px] font-bold border-2 rounded-[2px] shadow-md ${mode === "pattern" ? "bg-yellow-400 text-black border-yellow-600" : "bg-[#222] text-[#888] border-[#666]"}`}
                 >
                   PATTERN
                 </button>
                 <button
-                  onClick={() => setMode("step")}
+                  onClick={() => {
+                    setMode("step");
+                    stop(); // Stop playback
+                    clearPattern(); // Clear current pattern
+                  }}
                   className={`flex-1 h-8 text-[7px] font-bold border-2 rounded-[2px] shadow-md ${mode === "step" ? "bg-yellow-400 text-black border-yellow-600" : "bg-[#222] text-[#888] border-[#666]"}`}
                 >
                   STEP
                 </button>
-                <button
-                  onClick={() => setMode("poly")}
-                  className={`flex-1 h-8 text-[7px] font-bold border-2 rounded-[2px] shadow-md ${mode === "poly" ? "bg-purple-500 text-white border-purple-700" : "bg-[#222] text-[#888] border-[#666]"}`}
-                >
-                  POLY
-                </button>
               </div>
-              {/* Polymeter UI - shown when in poly mode */}
-              {mode === "poly" && (
+              {/* Pattern Navigation */}
+              {mode === "pattern" && (
                 <div className="mt-2 pt-2 border-t border-[#999]">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[8px] font-bold text-[#555]">{selectedVoice}</span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => setVoiceLength(selectedVoice, Math.max(1, (voiceLengths[selectedVoice] || patternLength) - 1))}
-                        className="w-6 h-6 bg-[#333] text-white text-[10px] font-bold border border-[#555] rounded-[2px]"
-                      >
-                        -
-                      </button>
-                      <span className="w-8 text-center text-[10px] font-mono font-bold text-[#333]">
-                        {voiceLengths[selectedVoice] || patternLength}
-                      </span>
-                      <button
-                        onClick={() => setVoiceLength(selectedVoice, Math.min(64, (voiceLengths[selectedVoice] || patternLength) + 1))}
-                        className="w-6 h-6 bg-[#333] text-white text-[10px] font-bold border border-[#555] rounded-[2px]"
-                      >
-                        +
-                      </button>
-                    </div>
+                  <div className="flex items-center justify-between gap-2 px-1">
+                    <button
+                      onClick={() => {
+                        const next = Math.max(0, currentSlot - 1);
+                        setCurrentSlot(next);
+                        loadPattern(next);
+                      }}
+                      disabled={currentSlot === 0}
+                      className="w-8 h-6 bg-[#333] text-white text-[12px] font-bold border border-[#555] rounded-[2px] disabled:opacity-50"
+                    >
+                      &lt;
+                    </button>
+                    <span className="flex-1 text-center text-[10px] font-mono font-bold text-[#333]">
+                      SELECT
+                    </span>
+                    <button
+                      onClick={() => {
+                        const next = Math.min(15, currentSlot + 1);
+                        setCurrentSlot(next);
+                        loadPattern(next);
+                      }}
+                      disabled={currentSlot === 15}
+                      className="w-8 h-6 bg-[#333] text-white text-[12px] font-bold border border-[#555] rounded-[2px] disabled:opacity-50"
+                    >
+                      &gt;
+                    </button>
                   </div>
                 </div>
               )}
@@ -1065,7 +1185,9 @@ export function PlaygroundView({ onBack }) {
                     className="w-12 h-12 rounded-[4px] border-[2px] border-[#555] shadow-lg flex items-center justify-center"
                     color="black"
                   >
-                    <span className={`text-xl ${playing ? "text-[#22c55e]" : "text-[#22c55e] opacity-70"}`}>
+                    <span
+                      className={`text-xl ${playing ? "text-[#22c55e]" : "text-[#22c55e] opacity-70"}`}
+                    >
                       ▶
                     </span>
                   </HardBtn>
@@ -1079,33 +1201,46 @@ export function PlaygroundView({ onBack }) {
                   {Array.from({ length: 16 }).map((_, i) => {
                     const realStep = stepPage * 16 + i;
                     const isOn = pattern[selectedVoice]?.includes(realStep);
-                    const isAccented = accents[selectedVoice]?.includes(realStep);
+                    const isAccented =
+                      accents[selectedVoice]?.includes(realStep);
                     const isCurrent = step === realStep && playing;
                     const prob = probability[selectedVoice]?.[realStep] ?? 100;
                     const hasFlam = flam[selectedVoice]?.has?.(realStep);
 
                     // Determine LED color based on mode and state
-                    let ledClass = "bg-[#3a2a2a] shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]";
+                    let ledClass =
+                      "bg-[#3a2a2a] shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]";
                     if (dataMode === "PROB" && isOn) {
                       // Show probability level with different colors
-                      if (prob === 0) ledClass = "bg-[#333] shadow-[0_0_2px_#111]";
-                      else if (prob <= 25) ledClass = "bg-[#553300] shadow-[0_0_4px_#552200]";
-                      else if (prob <= 50) ledClass = "bg-[#886600] shadow-[0_0_4px_#884400]";
-                      else if (prob <= 75) ledClass = "bg-[#bb8800] shadow-[0_0_4px_#aa6600]";
+                      if (prob === 0)
+                        ledClass = "bg-[#333] shadow-[0_0_2px_#111]";
+                      else if (prob <= 25)
+                        ledClass = "bg-[#553300] shadow-[0_0_4px_#552200]";
+                      else if (prob <= 50)
+                        ledClass = "bg-[#886600] shadow-[0_0_4px_#884400]";
+                      else if (prob <= 75)
+                        ledClass = "bg-[#bb8800] shadow-[0_0_4px_#aa6600]";
                       else ledClass = "bg-[#33cc33] shadow-[0_0_6px_#33cc33]";
                     } else if (dataMode === "FLAM" && isOn) {
                       ledClass = hasFlam
                         ? "bg-[#cc33cc] shadow-[0_0_6px_#cc33cc]"
                         : "bg-[#33cc33] shadow-[0_0_6px_#33cc33]";
                     } else if (isOn || isCurrent) {
-                      if (isAccented) ledClass = "bg-[#ff8800] shadow-[0_0_6px_#ff8800]";
-                      else if (isCurrent) ledClass = "bg-[#ff3333] shadow-[0_0_8px_#ff0000]";
+                      if (isAccented)
+                        ledClass = "bg-[#ff8800] shadow-[0_0_6px_#ff8800]";
+                      else if (isCurrent)
+                        ledClass = "bg-[#ff3333] shadow-[0_0_8px_#ff0000]";
                       else ledClass = "bg-[#33cc33] shadow-[0_0_6px_#33cc33]";
                     }
 
                     return (
-                      <div key={i} className="flex flex-col items-center w-[50px]">
-                        <div className={`w-3 h-1.5 rounded-[1px] border border-black/20 ${ledClass}`} />
+                      <div
+                        key={i}
+                        className="flex flex-col items-center w-[50px]"
+                      >
+                        <div
+                          className={`w-3 h-1.5 rounded-[1px] border border-black/20 ${ledClass}`}
+                        />
                       </div>
                     );
                   })}
@@ -1139,7 +1274,9 @@ export function PlaygroundView({ onBack }) {
                       <button
                         key={i}
                         onClick={handleClick}
-                        onDoubleClick={() => toggleAccent(selectedVoice, realStep)}
+                        onDoubleClick={() =>
+                          toggleAccent(selectedVoice, realStep)
+                        }
                         className={`
                           w-[50px] h-[50px] rounded-[3px] transition-all duration-75
                           bg-[#e8e8e0] border border-[#bbb]
@@ -1188,7 +1325,7 @@ export function PlaygroundView({ onBack }) {
 
                 <button
                   onClick={() => {
-                    setMutedVoices(prev => {
+                    setMutedVoices((prev) => {
                       const next = new Set(prev);
                       if (next.has(selectedVoice)) next.delete(selectedVoice);
                       else next.add(selectedVoice);
@@ -1202,7 +1339,7 @@ export function PlaygroundView({ onBack }) {
 
                 <button
                   onClick={() => {
-                    setSoloedVoices(prev => {
+                    setSoloedVoices((prev) => {
                       const next = new Set(prev);
                       if (next.has(selectedVoice)) next.delete(selectedVoice);
                       else next.add(selectedVoice);
