@@ -27,6 +27,44 @@ export function HomeView({
         </p>
       </div>
 
+      {/* Virtual RD-9 Panel */}
+      <RD9Panel label="VIRTUAL RD-9" className="mb-10 mt-2 shadow-xl">
+        <button onClick={onPlayground} className="w-full group">
+          <div className="border-2 border-[#888] bg-[#f2f2eb] p-4 shadow-[0_3px_0_#666,0_4px_4px_rgba(0,0,0,0.3)] group-active:shadow-[0_1px_0_#666] group-active:translate-y-[2px] transition-all">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-3 h-1 mb-1 bg-[#ff5f00] shadow-[0_0_6px_#ff5f00]" />
+                  <div className="w-12 h-12 flex flex-col items-center justify-start pt-1.5 border-2 bg-[#333] border-[#555] shadow-[0_2px_0_#111]">
+                    <div className="w-6 h-1.5 bg-[#1a1a1a] shadow-[inset_0_1px_2px_rgba(0,0,0,0.6)] mb-1" />
+                    <span className="text-[16px]" style={{ color: C.orange }}>
+                      ▶
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <div
+                    className="text-[11px] font-bold uppercase tracking-wider"
+                    style={{ color: C.orange }}
+                  >
+                    {lang === "es" ? "PROBAR AQUÍ" : "TRY IT HERE"}
+                  </div>
+                  <div
+                    className="text-[9px] uppercase tracking-wider"
+                    style={{ color: "#888" }}
+                  >
+                    {lang === "es" ? "Secuenciador completo" : "Full sequencer"}
+                  </div>
+                </div>
+              </div>
+              <span className="text-[18px]" style={{ color: C.orange }}>
+                ▸
+              </span>
+            </div>
+          </div>
+        </button>
+      </RD9Panel>
+
       {/* Levels Panel */}
       <RD9Panel label="LEVELS" className="mb-4">
         <div className="space-y-5 mt-2">
@@ -122,44 +160,6 @@ export function HomeView({
             </div>
           ))}
         </div>
-      </RD9Panel>
-
-      {/* Virtual RD-9 Panel */}
-      <RD9Panel label="VIRTUAL RD-9" className="mb-4">
-        <button onClick={onPlayground} className="w-full group">
-          <div className="border-2 border-[#888] bg-[#f2f2eb] p-4 shadow-[0_3px_0_#666,0_4px_4px_rgba(0,0,0,0.3)] group-active:shadow-[0_1px_0_#666] group-active:translate-y-[2px] transition-all">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="w-3 h-1 mb-1 bg-[#ff5f00] shadow-[0_0_6px_#ff5f00]" />
-                  <div className="w-12 h-12 flex flex-col items-center justify-start pt-1.5 border-2 bg-[#333] border-[#555] shadow-[0_2px_0_#111]">
-                    <div className="w-6 h-1.5 bg-[#1a1a1a] shadow-[inset_0_1px_2px_rgba(0,0,0,0.6)] mb-1" />
-                    <span className="text-[16px]" style={{ color: C.orange }}>
-                      ▶
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <div
-                    className="text-[11px] font-bold uppercase tracking-wider"
-                    style={{ color: C.orange }}
-                  >
-                    {lang === "es" ? "PROBAR AQUÍ" : "TRY IT HERE"}
-                  </div>
-                  <div
-                    className="text-[9px] uppercase tracking-wider"
-                    style={{ color: "#888" }}
-                  >
-                    {lang === "es" ? "Secuenciador completo" : "Full sequencer"}
-                  </div>
-                </div>
-              </div>
-              <span className="text-[18px]" style={{ color: C.orange }}>
-                ▸
-              </span>
-            </div>
-          </div>
-        </button>
       </RD9Panel>
 
       {/* Reset */}
