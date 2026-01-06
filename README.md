@@ -1,6 +1,7 @@
 # RD-9 Academy
 
-Interactive curriculum for learning electronic rhythm production with the Behringer RD-9.
+Interactive course for learning electronic rhythm production with the Behringer RD-9.
+If you don't have an RD-9, we provide the VIRTUAL RD-9 :)
 
 ## Stack
 
@@ -47,4 +48,4 @@ npm run build
 
 ## License
 
-MIT
+Created and crafted by francostan.dev
