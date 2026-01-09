@@ -29,14 +29,14 @@ export function Knob({ label, value = 50, size = 40, sizeXl, onChange, min = 0, 
 
   const interactive = typeof onChange === 'function';
 
-  const handleMouseDown = useCallback(
+  const handlePointerDown = useCallback(
     (e) => {
       if (!interactive) return;
       e.preventDefault();
 
       dragRef.current = { startY: e.clientY, startValue: value };
 
-      const handleMouseMove = (moveEvent) => {
+      const handlePointerMove = (moveEvent) => {
         const delta = dragRef.current.startY - moveEvent.clientY;
         const sensitivity = (max - min) / 200;
         const newValue = Math.min(
@@ -46,13 +46,13 @@ export function Knob({ label, value = 50, size = 40, sizeXl, onChange, min = 0, 
         onChange(Math.round(newValue));
       };
 
-      const handleMouseUp = () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+      const handlePointerUp = () => {
+        document.removeEventListener('pointermove', handlePointerMove);
+        document.removeEventListener('pointerup', handlePointerUp);
       };
 
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('pointermove', handlePointerMove);
+      document.addEventListener('pointerup', handlePointerUp);
     },
     [interactive, value, onChange, min, max]
   );
@@ -129,8 +129,9 @@ export function Knob({ label, value = 50, size = 40, sizeXl, onChange, min = 0, 
               0 4px 6px ${C.shadowDark},
               inset 0 1px 1px rgba(255,255,255,0.1)
             `,
+            touchAction: 'none',
           }}
-          onMouseDown={handleMouseDown}
+          onPointerDown={handlePointerDown}
         >
           {/* Top Face Detail */}
           <div
