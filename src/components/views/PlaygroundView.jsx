@@ -129,23 +129,25 @@ function ScaleWrapper({ children }) {
         </div>
       )}
 
-      <div
-        ref={containerRef}
-        style={{
-          // If scaling, increase the internal width so that when scaled down, it still fills the screen.
-          // internalWidth * scale = parentWidth  =>  internalWidth = parentWidth / scale
-          width:
-            isScaled && parentSize.width ? parentSize.width / scale : "100%",
-          height:
-            isScaled && parentSize.height ? parentSize.height / scale : "100%",
+      <div className={isMobileLandscape ? "mt-12" : ""}>
+        <div
+          ref={containerRef}
+          style={{
+            // If scaling, increase the internal width so that when scaled down, it still fills the screen.
+            // internalWidth * scale = parentWidth  =>  internalWidth = parentWidth / scale
+            width:
+              isScaled && parentSize.width ? parentSize.width / scale : "100%",
+            height:
+              isScaled && parentSize.height ? parentSize.height / scale : "100%",
 
-          transform: isScaled ? `scale(${scale})` : "none",
-          transformOrigin: "center center",
-          flexShrink: 0,
-        }}
-        className={`flex flex-col relative bg-[#e2e2df] shadow-2xl ${isScaled ? "" : "min-w-[1280px]"} ${isMobileLandscape ? "mt-12" : ""}`}
-      >
-        {children}
+            transform: isScaled ? `scale(${scale})` : "none",
+            transformOrigin: "center center",
+            flexShrink: 0,
+          }}
+          className={`flex flex-col relative bg-[#e2e2df] shadow-2xl ${isScaled ? "" : "min-w-[1280px]"}`}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );
