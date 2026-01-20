@@ -379,7 +379,7 @@ const HardBtn = ({
 export function PlaygroundView({ onBack }) {
   // para nano
   useEffect(() => {
-    console.log('%c💝 para nano', 'color: #33cc33; font-size: 14px; font-weight: bold;');
+    console.log('%cpara nano', 'color: #33cc33; font-size: 14px; font-weight: bold;');
   }, []);
 
   const {
@@ -717,7 +717,7 @@ export function PlaygroundView({ onBack }) {
             {/* Behringer Logo - con amor */}
             <div
               className="flex flex-col items-center justify-end pb-0.5 cursor-pointer"
-              onClick={() => console.log('%c❤️ con amor', 'color: #ff3333; font-size: 14px; font-weight: bold;')}
+              onClick={() => console.log('%ccon amor', 'color: #ff3333; font-size: 14px; font-weight: bold;')}
               title="con amor"
             >
               <svg
