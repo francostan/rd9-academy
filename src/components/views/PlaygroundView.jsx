@@ -1167,54 +1167,76 @@ export function PlaygroundView({ onBack }) {
             {/* --- ROW 2: TRANSPORT & STEP KEYS --- */}
             <div className="flex-1 bg-[#e2e2df] flex relative px-4 py-2 gap-6">
               {/* TRANSPORT (Bottom Left) */}
-              <div className="flex gap-3 items-start pb-1">
-                {/* Record */}
-                <div className="flex flex-col items-center gap-1">
-                  <div
-                    className={`w-1.5 h-1.5 rounded-full mb-1 ${isRecording ? "bg-red-500 shadow-[0_0_5px_red] animate-pulse" : "bg-[#300]"}`}
-                  />
-                  <HardBtn
-                    onClick={() => {
-                      if (isRecording) {
-                        stopRecording();
-                      } else {
-                        resume();
-                        startRecording();
-                      }
-                    }}
-                    className="w-12 h-12 rounded-[4px] border-[2px] border-[#555] shadow-lg flex items-center justify-center"
-                    color="black"
-                  >
-                    <div className={`w-3 h-3 rounded-full shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] ${isRecording ? "bg-[#ff3333]" : "bg-[#d22]"}`} />
-                  </HardBtn>
-                </div>
-                {/* Stop */}
-                <div className="flex flex-col items-center gap-1">
-                  <HardBtn
-                    onClick={stop}
-                    className="w-12 h-12 rounded-[4px] border-[2px] border-[#555] shadow-lg flex items-center mt-3.5 justify-center"
-                    color="black"
-                  >
-                    <div className="w-3 h-3 bg-[#ccc] shadow-[0_1px_1px_rgba(0,0,0,0.5)]" />
-                  </HardBtn>
-                </div>
-                {/* Play */}
-                <div className="flex flex-col items-center gap-1">
-                  <div
-                    className={`w-1.5 h-1.5 rounded-full mb-1 ${playing ? "bg-green-500 shadow-[0_0_5px_green]" : "bg-[#030]"}`}
-                  />
-                  <HardBtn
-                    onClick={handlePlay}
-                    className="w-12 h-12 rounded-[4px] border-[2px] border-[#555] shadow-lg flex items-center justify-center"
-                    color="black"
-                  >
-                    <span
-                      className={`text-xl ${playing ? "text-[#22c55e]" : "text-[#22c55e] opacity-70"}`}
+              <div className="flex flex-col gap-3 items-center pb-1">
+                <div className="flex gap-3 items-start">
+                  {/* Record */}
+                  <div className="flex flex-col items-center gap-1">
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full mb-1 ${isRecording ? "bg-red-500 shadow-[0_0_5px_red] animate-pulse" : "bg-[#300]"}`}
+                    />
+                    <HardBtn
+                      onClick={() => {
+                        if (isRecording) {
+                          stopRecording();
+                        } else {
+                          resume();
+                          startRecording();
+                        }
+                      }}
+                      className="w-12 h-12 rounded-[4px] border-[2px] border-[#555] shadow-lg flex items-center justify-center"
+                      color="black"
                     >
-                      ▶
-                    </span>
-                  </HardBtn>
+                      <div className={`w-3 h-3 rounded-full shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] ${isRecording ? "bg-[#ff3333]" : "bg-[#d22]"}`} />
+                    </HardBtn>
+                  </div>
+                  {/* Stop */}
+                  <div className="flex flex-col items-center gap-1">
+                    <HardBtn
+                      onClick={stop}
+                      className="w-12 h-12 rounded-[4px] border-[2px] border-[#555] shadow-lg flex items-center mt-3.5 justify-center"
+                      color="black"
+                    >
+                      <div className="w-3 h-3 bg-[#ccc] shadow-[0_1px_1px_rgba(0,0,0,0.5)]" />
+                    </HardBtn>
+                  </div>
+                  {/* Play */}
+                  <div className="flex flex-col items-center gap-1">
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full mb-1 ${playing ? "bg-green-500 shadow-[0_0_5px_green]" : "bg-[#030]"}`}
+                    />
+                    <HardBtn
+                      onClick={handlePlay}
+                      className="w-12 h-12 rounded-[4px] border-[2px] border-[#555] shadow-lg flex items-center justify-center"
+                      color="black"
+                    >
+                      <span
+                        className={`text-xl ${playing ? "text-[#22c55e]" : "text-[#22c55e] opacity-70"}`}
+                      >
+                        ▶
+                      </span>
+                    </HardBtn>
+                  </div>
                 </div>
+
+                {/* Export Button - appears after recording stops */}
+                {recordedBlob && (
+                  <button
+                    onClick={() => {
+                      const url = URL.createObjectURL(recordedBlob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `rd9-pattern-${Date.now()}.webm`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                      clearRecordedBlob();
+                    }}
+                    className="w-[180px] h-10 bg-gradient-to-b from-[#333] to-[#222] text-white text-[10px] font-bold tracking-widest border-2 border-[#555] rounded-[2px] shadow-lg active:translate-y-[1px] active:shadow-md transition-all"
+                  >
+                    EXPORT
+                  </button>
+                )}
               </div>
 
               {/* STEP KEYS (1-16) */}
@@ -1329,28 +1351,6 @@ export function PlaygroundView({ onBack }) {
                     );
                   })}
                 </div>
-
-                {/* Export Button - appears after recording stops */}
-                {recordedBlob && (
-                  <div className="mt-3 w-full px-2">
-                    <button
-                      onClick={() => {
-                        const url = URL.createObjectURL(recordedBlob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `rd9-pattern-${Date.now()}.webm`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                        clearRecordedBlob();
-                      }}
-                      className="w-full h-10 bg-gradient-to-b from-[#333] to-[#222] text-white text-[10px] font-bold tracking-widest border-2 border-[#555] rounded-[2px] shadow-lg active:translate-y-[1px] active:shadow-md transition-all"
-                    >
-                      EXPORT
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           </div>
