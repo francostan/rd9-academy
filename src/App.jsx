@@ -49,7 +49,10 @@ function AppContent() {
       className="min-h-screen font-mono text-xs"
       style={{ backgroundColor: C.chassis, color: C.ink }}
     >
-      <Header bpm={bpm} pct={percentage} onHomeClick={() => navigate("/")} />
+      {/* Hide header on playground view for better mobile experience */}
+      {view !== "playground" && (
+        <Header bpm={bpm} pct={percentage} onHomeClick={() => navigate("/")} />
+      )}
 
       <main
         className={`mx-auto ${view === "playground" ? "w-full h-screen" : "max-w-3xl"}`}

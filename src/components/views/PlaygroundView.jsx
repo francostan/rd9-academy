@@ -7,15 +7,33 @@ import { DarkControlStrip } from "./DarkControlStrip";
 // --- SCALING WRAPPER ---
 function ScaleWrapper({ children }) {
   const containerRef = useRef(null);
+  const wrapperRef = useRef(null);
   const [scale, setScale] = useState(1);
   const [isScaled, setIsScaled] = useState(false);
   const [showRotate, setShowRotate] = useState(false);
+  const [isMobileLandscape, setIsMobileLandscape] = useState(false);
   const [parentSize, setParentSize] = useState({ width: 0, height: 0 });
 
   // The "XL" breakpoint dimensions we want to preserve/target
   // 1512x982 is the default scaled resolution for a 14" MacBook Pro
   const TARGET_WIDTH = 1512;
   const TARGET_HEIGHT = 900;
+
+  // Request fullscreen on mobile landscape
+  const requestFullscreen = useCallback(() => {
+    const elem = wrapperRef.current;
+    if (!elem) return;
+
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen().catch(() => {});
+    } else if (elem.webkitRequestFullscreen) {
+      elem.webkitRequestFullscreen();
+    } else if (elem.mozRequestFullScreen) {
+      elem.mozRequestFullScreen();
+    } else if (elem.msRequestFullscreen) {
+      elem.msRequestFullscreen();
+    }
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -29,9 +47,17 @@ function ScaleWrapper({ children }) {
       // Check for mobile portrait mode
       if (width < 768 && height > width) {
         setShowRotate(true);
+        setIsMobileLandscape(false);
+        return;
       } else {
         setShowRotate(false);
       }
+
+      // Check for mobile landscape mode
+      const isMobile = width < 1024;
+      const isLandscape = width > height;
+      const mobileLandscape = isMobile && isLandscape;
+      setIsMobileLandscape(mobileLandscape);
 
       // Only scale DOWN if the screen is smaller than our target layout
       const scaleX = width < TARGET_WIDTH ? width / TARGET_WIDTH : 1;
@@ -79,7 +105,30 @@ function ScaleWrapper({ children }) {
   }
 
   return (
-    <div className="w-full h-full flex items-center justify-center overflow-hidden bg-[#1a1a1a]">
+    <div
+      ref={wrapperRef}
+      className={`w-full h-full flex items-center justify-center overflow-hidden bg-[#1a1a1a] ${isMobileLandscape ? 'fixed inset-0 z-50' : ''}`}
+    >
+      {/* Mobile landscape controls */}
+      {isMobileLandscape && (
+        <div className="fixed top-2 right-2 z-50 flex gap-2">
+          <button
+            onClick={() => window.location.hash = '/'}
+            className="px-3 py-1.5 bg-[#333] text-white text-[8px] font-bold tracking-wider border border-[#555] rounded-[2px] shadow-lg active:bg-[#444] transition-all opacity-70 hover:opacity-100"
+            title="Exit"
+          >
+            EXIT
+          </button>
+          <button
+            onClick={requestFullscreen}
+            className="px-3 py-1.5 bg-[#333] text-white text-[8px] font-bold tracking-wider border border-[#555] rounded-[2px] shadow-lg active:bg-[#444] transition-all opacity-70 hover:opacity-100"
+            title="Fullscreen"
+          >
+            ⛶
+          </button>
+        </div>
+      )}
+
       <div
         ref={containerRef}
         style={{
