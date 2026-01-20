@@ -50,12 +50,16 @@ export function useAudioEngine() {
   const [accentLevel, setAccentLevel] = useState(50); // 0-100, maps to 1x-2x multiplier
   const [waveAttack, setWaveAttack] = useState(50); // 0-100, transient punch
   const [waveSustain, setWaveSustain] = useState(50); // 0-100, body/tail
+  const [isRecording, setIsRecording] = useState(false);
   const ctxRef = useRef(null);
   const filterRef = useRef(null);
   const sampleBuffers = useRef({});
   const accentLevelRef = useRef(accentLevel);
   const waveAttackRef = useRef(waveAttack);
   const waveSustainRef = useRef(waveSustain);
+  const mediaRecorderRef = useRef(null);
+  const recordedChunksRef = useRef([]);
+  const recorderNodeRef = useRef(null);
 
   // Keep refs updated
   useEffect(() => {
@@ -253,6 +257,73 @@ export function useAudioEngine() {
     initAudio();
   }, [initAudio]);
 
+  // Start recording audio output
+  const startRecording = useCallback(() => {
+    const ctx = ctxRef.current;
+    if (!ctx || isRecording) return false;
+
+    try {
+      // Create a MediaStreamDestination to capture audio
+      const recorderNode = ctx.createMediaStreamDestination();
+      recorderNodeRef.current = recorderNode;
+
+      // Connect the globalClipper to the recorder (it's already connected to ctx.destination)
+      if (globalClipper) {
+        globalClipper.connect(recorderNode);
+      }
+
+      // Set up MediaRecorder
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : 'audio/webm';
+
+      const mediaRecorder = new MediaRecorder(recorderNode.stream, { mimeType });
+      mediaRecorderRef.current = mediaRecorder;
+      recordedChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          recordedChunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `rd9-pattern-${Date.now()}.webm`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        // Clean up
+        if (recorderNodeRef.current) {
+          recorderNodeRef.current.disconnect();
+          recorderNodeRef.current = null;
+        }
+
+        setIsRecording(false);
+      };
+
+      mediaRecorder.start(100);
+      setIsRecording(true);
+      return true;
+    } catch (err) {
+      console.error('Failed to start recording:', err);
+      setIsRecording(false);
+      return false;
+    }
+  }, [isRecording]);
+
+  // Stop recording
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+  }, []);
+
   return {
     loaded,
     loading,
@@ -276,5 +347,9 @@ export function useAudioEngine() {
     setWaveAttack,
     waveSustain,
     setWaveSustain,
+    // Recording controls
+    isRecording,
+    startRecording,
+    stopRecording,
   };
 }

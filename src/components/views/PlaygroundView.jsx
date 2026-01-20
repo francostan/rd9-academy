@@ -377,6 +377,11 @@ const HardBtn = ({
 };
 
 export function PlaygroundView({ onBack }) {
+  // para nano
+  useEffect(() => {
+    console.log('%c💝 para nano', 'color: #33cc33; font-size: 14px; font-weight: bold;');
+  }, []);
+
   const {
     play,
     loaded,
@@ -395,6 +400,9 @@ export function PlaygroundView({ onBack }) {
     setWaveAttack,
     waveSustain,
     setWaveSustain,
+    isRecording,
+    startRecording,
+    stopRecording,
   } = useAudioEngine();
 
   const [voiceParams, setVoiceParams] = useState(createInitialParams);
@@ -704,8 +712,12 @@ export function PlaygroundView({ onBack }) {
               <Knob label="" value={80} onChange={() => {}} size={34} />
             </div>
 
-            {/* Behringer Logo */}
-            <div className="flex flex-col items-center justify-end pb-0.5">
+            {/* Behringer Logo - con amor */}
+            <div
+              className="flex flex-col items-center justify-end pb-0.5 cursor-pointer"
+              onClick={() => console.log('%c❤️ con amor', 'color: #ff3333; font-size: 14px; font-weight: bold;')}
+              title="con amor"
+            >
               <svg
                 width="24"
                 height="24"
@@ -907,7 +919,7 @@ export function PlaygroundView({ onBack }) {
                     clearStorage(currentSlot + 1);
                     clearPattern();
                     // Visual feedback (flash SAVE light/text maybe? or just rely on clear)
-                    // Let's flash the button itself by reusing saveMode or adding a new state? 
+                    // Let's flash the button itself by reusing saveMode or adding a new state?
                     // Reusing saveMode "SAV" display is simplest feedback that "Storage action happened"
                     setSaveMode(true);
                     setTimeout(() => setSaveMode(false), 500);
@@ -922,6 +934,69 @@ export function PlaygroundView({ onBack }) {
                   className={`flex-1 h-8 text-[7px] font-bold border-2 rounded-[2px] shadow-inner active:translate-y-[1px] ${pasting ? "bg-blue-600 text-white border-blue-700" : "bg-[#222] text-[#888] border-[#666]"}`}
                 >
                   PASTE
+                </button>
+              </div>
+            </div>
+
+            {/* EXPORT */}
+            <div className="border border-[#777] rounded-[6px] bg-[#e2e2df] p-3 relative flex-1 flex flex-col justify-center">
+              <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-[#444] text-white text-[9px] font-bold tracking-widest rounded-[2px]">
+                EXPORT
+              </div>
+              <div className="flex flex-col gap-2 mt-1">
+                <button
+                  onClick={() => {
+                    if (isRecording) {
+                      stopRecording();
+                    } else {
+                      resume();
+                      startRecording();
+                    }
+                  }}
+                  className={`w-full h-8 text-[7px] font-bold border-2 rounded-[2px] shadow-inner active:translate-y-[1px] ${isRecording ? "bg-red-600 text-white border-red-700 animate-pulse" : "bg-[#222] text-[#888] border-[#666]"}`}
+                  title="Record audio output (click to start/stop)"
+                >
+                  {isRecording ? "⏹ STOP REC" : "⏺ REC AUDIO"}
+                </button>
+                <button
+                  onClick={() => {
+                    // Serialize Sets to Arrays for export
+                    const serializedFlam = {};
+                    if (flam) {
+                      Object.keys(flam).forEach((k) => {
+                        serializedFlam[k] = Array.from(flam[k] || []);
+                      });
+                    }
+
+                    const exportData = {
+                      pattern,
+                      accents,
+                      voiceParams,
+                      bpm,
+                      swing,
+                      probability,
+                      flam: serializedFlam,
+                      flamWidth,
+                      patternLength,
+                      voiceLengths,
+                      exportedAt: Date.now(),
+                      version: '1.0'
+                    };
+
+                    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `rd9-pattern-${Date.now()}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="w-full h-8 bg-[#222] text-[#888] text-[7px] font-bold border-2 border-[#666] rounded-[2px] shadow-inner active:translate-y-[1px]"
+                  title="Export pattern as JSON file"
+                >
+                  💾 JSON
                 </button>
               </div>
             </div>
