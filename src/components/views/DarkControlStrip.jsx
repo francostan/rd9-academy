@@ -66,33 +66,45 @@ const LEDDisplay = ({
   onEditBlur,
   onEditKeyDown,
 }) => (
-  <div
-    onClick={onClick}
-    className="w-[110px] h-[48px] bg-black rounded-[3px] border-[3px] border-[#111]
-               flex items-center justify-end px-3 cursor-pointer
-               shadow-[inset_0_2px_8px_rgba(0,0,0,0.9)] relative overflow-hidden"
-  >
-    {/* Subtle glass reflection */}
-    <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+  <div className="flex flex-col items-center gap-1">
+    <div
+      onClick={onClick}
+      className="w-[110px] h-[48px] bg-black rounded-[3px] border-[3px] border-[#111]
+                 flex items-center justify-end px-3 cursor-pointer
+                 shadow-[inset_0_2px_8px_rgba(0,0,0,0.9)] relative overflow-hidden"
+    >
+      {/* Subtle glass reflection */}
+      <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
 
-    {editing ? (
-      <input
-        type="text"
-        value={editValue}
-        onChange={onEditChange}
-        onBlur={onEditBlur}
-        onKeyDown={onEditKeyDown}
-        autoFocus
-        className="w-full bg-transparent font-mono text-2xl text-[#ff3333] font-black text-right outline-none z-10 tracking-wider"
-      />
-    ) : (
-      <span
-        className="font-mono text-2xl font-black text-[#ff3333] tracking-wider z-10"
-        style={{ textShadow: "0 0 10px rgba(255,50,50,0.6)" }}
-      >
-        {value}
-      </span>
-    )}
+      {editing ? (
+        <input
+          type="text"
+          value={editValue}
+          onChange={onEditChange}
+          onBlur={onEditBlur}
+          onKeyDown={onEditKeyDown}
+          autoFocus
+          className="w-full bg-transparent font-mono text-2xl text-[#ff3333] font-black text-right outline-none z-10 tracking-wider"
+        />
+      ) : (
+        <span
+          className="font-mono text-2xl font-black text-[#ff3333] tracking-wider z-10"
+          style={{ textShadow: "0 0 10px rgba(255,50,50,0.6)" }}
+        >
+          {value}
+        </span>
+      )}
+    </div>
+    <div className="text-center">
+      <p className="text-[7px] tracking-[0.15em] text-[#888] font-bold">
+        DE DETROIT A BERLIN
+      </p>
+      <p className="text-[6px] tracking-wide opacity-50 text-[#888] mt-0.5">
+        Este es uno de los regalos para nano,
+        <br />
+        con amor tu compa de viaje
+      </p>
+    </div>
   </div>
 );
 
