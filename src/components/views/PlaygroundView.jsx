@@ -1295,6 +1295,15 @@ export function PlaygroundView({ onBack }) {
                     </button>
                   </div>
                 )}
+
+                {/* Message for Nano */}
+                <div className="mt-4 text-center">
+                  <p className="text-[7px] tracking-wide opacity-50 text-[#333]">
+                    Este es uno de los regalos para nano,
+                    <br />
+                    con amor tu compa de viaje
+                  </p>
+                </div>
               </div>
 
               {/* STEP KEYS (1-16) */}
