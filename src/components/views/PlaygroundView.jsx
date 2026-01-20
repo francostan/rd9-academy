@@ -1269,22 +1269,31 @@ export function PlaygroundView({ onBack }) {
 
                 {/* Export Button - appears after recording stops */}
                 {recordedBlob && (
-                  <button
-                    onClick={() => {
-                      const url = URL.createObjectURL(recordedBlob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `rd9-pattern-${Date.now()}.webm`;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                      clearRecordedBlob();
-                    }}
-                    className="w-[180px] h-10 bg-gradient-to-b from-[#333] to-[#222] text-white text-[10px] font-bold tracking-widest border-2 border-[#555] rounded-[2px] shadow-lg active:translate-y-[1px] active:shadow-md transition-all"
-                  >
-                    EXPORT
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        const url = URL.createObjectURL(recordedBlob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `rd9-pattern-${Date.now()}.webm`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        clearRecordedBlob();
+                      }}
+                      className="w-[120px] h-7 bg-gradient-to-b from-[#333] to-[#222] text-white text-[9px] font-bold tracking-widest border-2 border-[#555] rounded-[2px] shadow-lg active:translate-y-[1px] active:shadow-md transition-all"
+                    >
+                      EXPORT
+                    </button>
+                    <button
+                      onClick={clearRecordedBlob}
+                      className="w-[50px] h-7 bg-gradient-to-b from-[#cc2222] to-[#990000] text-white text-[9px] font-bold tracking-widest border-2 border-[#660000] rounded-[2px] shadow-lg active:translate-y-[1px] active:shadow-md transition-all"
+                      title="Clear recording"
+                    >
+                      CLEAR
+                    </button>
+                  </div>
                 )}
               </div>
 
