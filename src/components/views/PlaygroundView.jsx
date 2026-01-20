@@ -401,8 +401,10 @@ export function PlaygroundView({ onBack }) {
     waveSustain,
     setWaveSustain,
     isRecording,
+    recordedBlob,
     startRecording,
     stopRecording,
+    clearRecordedBlob,
   } = useAudioEngine();
 
   const [voiceParams, setVoiceParams] = useState(createInitialParams);
@@ -938,69 +940,6 @@ export function PlaygroundView({ onBack }) {
               </div>
             </div>
 
-            {/* EXPORT */}
-            <div className="border border-[#777] rounded-[6px] bg-[#e2e2df] p-3 relative flex-1 flex flex-col justify-center">
-              <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-[#444] text-white text-[9px] font-bold tracking-widest rounded-[2px]">
-                EXPORT
-              </div>
-              <div className="flex flex-col gap-2 mt-1">
-                <button
-                  onClick={() => {
-                    if (isRecording) {
-                      stopRecording();
-                    } else {
-                      resume();
-                      startRecording();
-                    }
-                  }}
-                  className={`w-full h-8 text-[7px] font-bold border-2 rounded-[2px] shadow-inner active:translate-y-[1px] ${isRecording ? "bg-red-600 text-white border-red-700 animate-pulse" : "bg-[#222] text-[#888] border-[#666]"}`}
-                  title="Record audio output (click to start/stop)"
-                >
-                  {isRecording ? "⏹ STOP REC" : "⏺ REC AUDIO"}
-                </button>
-                <button
-                  onClick={() => {
-                    // Serialize Sets to Arrays for export
-                    const serializedFlam = {};
-                    if (flam) {
-                      Object.keys(flam).forEach((k) => {
-                        serializedFlam[k] = Array.from(flam[k] || []);
-                      });
-                    }
-
-                    const exportData = {
-                      pattern,
-                      accents,
-                      voiceParams,
-                      bpm,
-                      swing,
-                      probability,
-                      flam: serializedFlam,
-                      flamWidth,
-                      patternLength,
-                      voiceLengths,
-                      exportedAt: Date.now(),
-                      version: '1.0'
-                    };
-
-                    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `rd9-pattern-${Date.now()}.json`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                  }}
-                  className="w-full h-8 bg-[#222] text-[#888] text-[7px] font-bold border-2 border-[#666] rounded-[2px] shadow-inner active:translate-y-[1px]"
-                  title="Export pattern as JSON file"
-                >
-                  💾 JSON
-                </button>
-              </div>
-            </div>
-
             {/* MODE */}
             <div className="border border-[#777] rounded-[6px] bg-[#e2e2df] p-3 relative flex-1 flex flex-col justify-center">
               <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-[#444] text-white text-[9px] font-bold tracking-widest rounded-[2px]">
@@ -1231,13 +1170,22 @@ export function PlaygroundView({ onBack }) {
               <div className="flex gap-3 items-start pb-1">
                 {/* Record */}
                 <div className="flex flex-col items-center gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#300] mb-1" />{" "}
-                  {/* LED placeholder */}
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full mb-1 ${isRecording ? "bg-red-500 shadow-[0_0_5px_red] animate-pulse" : "bg-[#300]"}`}
+                  />
                   <HardBtn
+                    onClick={() => {
+                      if (isRecording) {
+                        stopRecording();
+                      } else {
+                        resume();
+                        startRecording();
+                      }
+                    }}
                     className="w-12 h-12 rounded-[4px] border-[2px] border-[#555] shadow-lg flex items-center justify-center"
                     color="black"
                   >
-                    <div className="w-3 h-3 bg-[#d22] rounded-full shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]" />
+                    <div className={`w-3 h-3 rounded-full shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] ${isRecording ? "bg-[#ff3333]" : "bg-[#d22]"}`} />
                   </HardBtn>
                 </div>
                 {/* Stop */}
@@ -1381,6 +1329,28 @@ export function PlaygroundView({ onBack }) {
                     );
                   })}
                 </div>
+
+                {/* Export Button - appears after recording stops */}
+                {recordedBlob && (
+                  <div className="mt-3 w-full px-2">
+                    <button
+                      onClick={() => {
+                        const url = URL.createObjectURL(recordedBlob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `rd9-pattern-${Date.now()}.webm`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        clearRecordedBlob();
+                      }}
+                      className="w-full h-10 bg-gradient-to-b from-[#333] to-[#222] text-white text-[10px] font-bold tracking-widest border-2 border-[#555] rounded-[2px] shadow-lg active:translate-y-[1px] active:shadow-md transition-all"
+                    >
+                      EXPORT
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

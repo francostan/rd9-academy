@@ -51,6 +51,7 @@ export function useAudioEngine() {
   const [waveAttack, setWaveAttack] = useState(50); // 0-100, transient punch
   const [waveSustain, setWaveSustain] = useState(50); // 0-100, body/tail
   const [isRecording, setIsRecording] = useState(false);
+  const [recordedBlob, setRecordedBlob] = useState(null);
   const ctxRef = useRef(null);
   const filterRef = useRef(null);
   const sampleBuffers = useRef({});
@@ -289,22 +290,14 @@ export function useAudioEngine() {
 
       mediaRecorder.onstop = () => {
         const blob = new Blob(recordedChunksRef.current, { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `rd9-pattern-${Date.now()}.webm`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        setRecordedBlob(blob);
+        setIsRecording(false);
 
-        // Clean up
+        // Clean up recorder node
         if (recorderNodeRef.current) {
           recorderNodeRef.current.disconnect();
           recorderNodeRef.current = null;
         }
-
-        setIsRecording(false);
       };
 
       mediaRecorder.start(100);
@@ -322,6 +315,11 @@ export function useAudioEngine() {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
     }
+  }, []);
+
+  // Clear recorded blob
+  const clearRecordedBlob = useCallback(() => {
+    setRecordedBlob(null);
   }, []);
 
   return {
@@ -349,7 +347,9 @@ export function useAudioEngine() {
     setWaveSustain,
     // Recording controls
     isRecording,
+    recordedBlob,
     startRecording,
     stopRecording,
+    clearRecordedBlob,
   };
 }
