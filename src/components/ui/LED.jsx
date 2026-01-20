@@ -7,14 +7,15 @@ const SIZES = {
   xl: 'text-4xl',
 };
 
-export function LED({ value, size = 'lg' }) {
+export function LED({ value, size = 'lg', onClick }) {
   return (
     <span
-      className={`font-mono ${SIZES[size]} tracking-wider`}
+      className={`font-mono ${SIZES[size]} tracking-wider ${onClick ? 'cursor-pointer' : ''}`}
       style={{
         color: C.red,
         textShadow: `0 0 8px ${C.redGlow}, 0 0 16px ${C.redGlow}50`,
       }}
+      onClick={onClick}
     >
       {value}
     </span>

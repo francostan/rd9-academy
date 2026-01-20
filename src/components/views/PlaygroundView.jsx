@@ -7,15 +7,33 @@ import { DarkControlStrip } from "./DarkControlStrip";
 // --- SCALING WRAPPER ---
 function ScaleWrapper({ children }) {
   const containerRef = useRef(null);
+  const wrapperRef = useRef(null);
   const [scale, setScale] = useState(1);
   const [isScaled, setIsScaled] = useState(false);
   const [showRotate, setShowRotate] = useState(false);
+  const [isMobileLandscape, setIsMobileLandscape] = useState(false);
   const [parentSize, setParentSize] = useState({ width: 0, height: 0 });
 
   // The "XL" breakpoint dimensions we want to preserve/target
   // 1512x982 is the default scaled resolution for a 14" MacBook Pro
   const TARGET_WIDTH = 1512;
   const TARGET_HEIGHT = 900;
+
+  // Request fullscreen on mobile landscape
+  const requestFullscreen = useCallback(() => {
+    const elem = wrapperRef.current;
+    if (!elem) return;
+
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen().catch(() => {});
+    } else if (elem.webkitRequestFullscreen) {
+      elem.webkitRequestFullscreen();
+    } else if (elem.mozRequestFullScreen) {
+      elem.mozRequestFullScreen();
+    } else if (elem.msRequestFullscreen) {
+      elem.msRequestFullscreen();
+    }
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -29,9 +47,17 @@ function ScaleWrapper({ children }) {
       // Check for mobile portrait mode
       if (width < 768 && height > width) {
         setShowRotate(true);
+        setIsMobileLandscape(false);
+        return;
       } else {
         setShowRotate(false);
       }
+
+      // Check for mobile landscape mode
+      const isMobile = width < 1024;
+      const isLandscape = width > height;
+      const mobileLandscape = isMobile && isLandscape;
+      setIsMobileLandscape(mobileLandscape);
 
       // Only scale DOWN if the screen is smaller than our target layout
       const scaleX = width < TARGET_WIDTH ? width / TARGET_WIDTH : 1;
@@ -79,7 +105,30 @@ function ScaleWrapper({ children }) {
   }
 
   return (
-    <div className="w-full h-full flex items-center justify-center overflow-hidden bg-[#1a1a1a]">
+    <div
+      ref={wrapperRef}
+      className={`w-full h-full flex items-center justify-center overflow-hidden bg-[#1a1a1a] ${isMobileLandscape ? 'fixed inset-0 z-50' : ''}`}
+    >
+      {/* Mobile landscape controls */}
+      {isMobileLandscape && (
+        <div className="fixed top-2 right-2 z-50 flex gap-2">
+          <button
+            onClick={() => window.location.hash = '/'}
+            className="px-3 py-1.5 bg-[#333] text-white text-[8px] font-bold tracking-wider border border-[#555] rounded-[2px] shadow-lg active:bg-[#444] transition-all opacity-70 hover:opacity-100"
+            title="Exit"
+          >
+            EXIT
+          </button>
+          <button
+            onClick={requestFullscreen}
+            className="px-3 py-1.5 bg-[#333] text-white text-[8px] font-bold tracking-wider border border-[#555] rounded-[2px] shadow-lg active:bg-[#444] transition-all opacity-70 hover:opacity-100"
+            title="Fullscreen"
+          >
+            ⛶
+          </button>
+        </div>
+      )}
+
       <div
         ref={containerRef}
         style={{
@@ -377,6 +426,11 @@ const HardBtn = ({
 };
 
 export function PlaygroundView({ onBack }) {
+  // para nano
+  useEffect(() => {
+    console.log('%cpara nano', 'color: #33cc33; font-size: 14px; font-weight: bold;');
+  }, []);
+
   const {
     play,
     loaded,
@@ -395,6 +449,11 @@ export function PlaygroundView({ onBack }) {
     setWaveAttack,
     waveSustain,
     setWaveSustain,
+    isRecording,
+    recordedBlob,
+    startRecording,
+    stopRecording,
+    clearRecordedBlob,
   } = useAudioEngine();
 
   const [voiceParams, setVoiceParams] = useState(createInitialParams);
@@ -704,8 +763,12 @@ export function PlaygroundView({ onBack }) {
               <Knob label="" value={80} onChange={() => {}} size={34} />
             </div>
 
-            {/* Behringer Logo */}
-            <div className="flex flex-col items-center justify-end pb-0.5">
+            {/* Behringer Logo - con amor */}
+            <div
+              className="flex flex-col items-center justify-end pb-0.5 cursor-pointer"
+              onClick={() => console.log('%ccon amor', 'color: #ff3333; font-size: 14px; font-weight: bold;')}
+              title="con amor"
+            >
               <svg
                 width="24"
                 height="24"
@@ -907,7 +970,7 @@ export function PlaygroundView({ onBack }) {
                     clearStorage(currentSlot + 1);
                     clearPattern();
                     // Visual feedback (flash SAVE light/text maybe? or just rely on clear)
-                    // Let's flash the button itself by reusing saveMode or adding a new state? 
+                    // Let's flash the button itself by reusing saveMode or adding a new state?
                     // Reusing saveMode "SAV" display is simplest feedback that "Storage action happened"
                     setSaveMode(true);
                     setTimeout(() => setSaveMode(false), 500);
@@ -1153,45 +1216,85 @@ export function PlaygroundView({ onBack }) {
             {/* --- ROW 2: TRANSPORT & STEP KEYS --- */}
             <div className="flex-1 bg-[#e2e2df] flex relative px-4 py-2 gap-6">
               {/* TRANSPORT (Bottom Left) */}
-              <div className="flex gap-3 items-start pb-1">
-                {/* Record */}
-                <div className="flex flex-col items-center gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#300] mb-1" />{" "}
-                  {/* LED placeholder */}
-                  <HardBtn
-                    className="w-12 h-12 rounded-[4px] border-[2px] border-[#555] shadow-lg flex items-center justify-center"
-                    color="black"
-                  >
-                    <div className="w-3 h-3 bg-[#d22] rounded-full shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]" />
-                  </HardBtn>
-                </div>
-                {/* Stop */}
-                <div className="flex flex-col items-center gap-1">
-                  <HardBtn
-                    onClick={stop}
-                    className="w-12 h-12 rounded-[4px] border-[2px] border-[#555] shadow-lg flex items-center mt-3.5 justify-center"
-                    color="black"
-                  >
-                    <div className="w-3 h-3 bg-[#ccc] shadow-[0_1px_1px_rgba(0,0,0,0.5)]" />
-                  </HardBtn>
-                </div>
-                {/* Play */}
-                <div className="flex flex-col items-center gap-1">
-                  <div
-                    className={`w-1.5 h-1.5 rounded-full mb-1 ${playing ? "bg-green-500 shadow-[0_0_5px_green]" : "bg-[#030]"}`}
-                  />
-                  <HardBtn
-                    onClick={handlePlay}
-                    className="w-12 h-12 rounded-[4px] border-[2px] border-[#555] shadow-lg flex items-center justify-center"
-                    color="black"
-                  >
-                    <span
-                      className={`text-xl ${playing ? "text-[#22c55e]" : "text-[#22c55e] opacity-70"}`}
+              <div className="flex flex-col gap-3 items-center pb-1">
+                <div className="flex gap-3 items-start">
+                  {/* Record */}
+                  <div className="flex flex-col items-center gap-1">
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full mb-1 ${isRecording ? "bg-red-500 shadow-[0_0_5px_red] animate-pulse" : "bg-[#300]"}`}
+                    />
+                    <HardBtn
+                      onClick={() => {
+                        if (isRecording) {
+                          stopRecording();
+                        } else {
+                          resume();
+                          startRecording();
+                        }
+                      }}
+                      className="w-12 h-12 rounded-[4px] border-[2px] border-[#555] shadow-lg flex items-center justify-center"
+                      color="black"
                     >
-                      ▶
-                    </span>
-                  </HardBtn>
+                      <div className={`w-3 h-3 rounded-full shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] ${isRecording ? "bg-[#ff3333]" : "bg-[#d22]"}`} />
+                    </HardBtn>
+                  </div>
+                  {/* Stop */}
+                  <div className="flex flex-col items-center gap-1">
+                    <HardBtn
+                      onClick={stop}
+                      className="w-12 h-12 rounded-[4px] border-[2px] border-[#555] shadow-lg flex items-center mt-3.5 justify-center"
+                      color="black"
+                    >
+                      <div className="w-3 h-3 bg-[#ccc] shadow-[0_1px_1px_rgba(0,0,0,0.5)]" />
+                    </HardBtn>
+                  </div>
+                  {/* Play */}
+                  <div className="flex flex-col items-center gap-1">
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full mb-1 ${playing ? "bg-green-500 shadow-[0_0_5px_green]" : "bg-[#030]"}`}
+                    />
+                    <HardBtn
+                      onClick={handlePlay}
+                      className="w-12 h-12 rounded-[4px] border-[2px] border-[#555] shadow-lg flex items-center justify-center"
+                      color="black"
+                    >
+                      <span
+                        className={`text-xl ${playing ? "text-[#22c55e]" : "text-[#22c55e] opacity-70"}`}
+                      >
+                        ▶
+                      </span>
+                    </HardBtn>
+                  </div>
                 </div>
+
+                {/* Export Button - appears after recording stops */}
+                {recordedBlob && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        const url = URL.createObjectURL(recordedBlob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `rd9-pattern-${Date.now()}.webm`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        clearRecordedBlob();
+                      }}
+                      className="w-[120px] h-7 bg-gradient-to-b from-[#333] to-[#222] text-white text-[9px] font-bold tracking-widest border-2 border-[#555] rounded-[2px] shadow-lg active:translate-y-[1px] active:shadow-md transition-all"
+                    >
+                      EXPORT
+                    </button>
+                    <button
+                      onClick={clearRecordedBlob}
+                      className="w-[50px] h-7 bg-gradient-to-b from-[#cc2222] to-[#990000] text-white text-[9px] font-bold tracking-widest border-2 border-[#660000] rounded-[2px] shadow-lg active:translate-y-[1px] active:shadow-md transition-all"
+                      title="Clear recording"
+                    >
+                      CLEAR
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* STEP KEYS (1-16) */}
