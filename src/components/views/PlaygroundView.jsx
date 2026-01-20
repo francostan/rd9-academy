@@ -107,11 +107,11 @@ function ScaleWrapper({ children }) {
   return (
     <div
       ref={wrapperRef}
-      className={`w-full h-full flex items-center justify-center overflow-hidden bg-[#1a1a1a] ${isMobileLandscape ? 'fixed inset-0 z-50' : ''}`}
+      className={`w-full h-full flex items-center justify-center overflow-hidden bg-[#1a1a1a] ${isMobileLandscape ? 'fixed inset-0 z-50 p-4' : ''}`}
     >
       {/* Mobile landscape controls */}
       {isMobileLandscape && (
-        <div className="fixed top-2 right-2 z-50 flex gap-2">
+        <div className="fixed top-6 right-6 z-50 flex gap-2">
           <button
             onClick={() => window.location.hash = '/'}
             className="px-3 py-1.5 bg-[#333] text-white text-[8px] font-bold tracking-wider border border-[#555] rounded-[2px] shadow-lg active:bg-[#444] transition-all opacity-70 hover:opacity-100"
