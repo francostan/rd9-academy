@@ -25,6 +25,11 @@ export function HomeView({
         >
           {lang === "es" ? "De Detroit a Berlin" : "From Detroit to Berlin"}
         </p>
+        <p className="mt-2 text-[7px] tracking-wide opacity-50" style={{ color: C.textMuted }}>
+          Este es uno de los regalos para nano,
+          <br />
+          con amor tu compa de viaje
+        </p>
       </div>
 
       {/* Virtual RD-9 Panel */}
