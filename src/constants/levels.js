@@ -334,21 +334,25 @@ High OH DECAY (70+) = long tail, implied reverb.`,
         ],
         type: 'knobs',
         target: 'CH',
+        knobs: [
+          { voice: 'CH', param: 'DECAY', label: 'CH DECAY' },
+          { voice: 'OH', param: 'DECAY', label: 'OH DECAY' },
+        ],
         check: (s) => {
           if (!s.hh) return { pass: false, message: { es: "Explora los hi-hats Cerrado (CH) y Abierto (OH).", en: "Explore both Closed (CH) and Open (OH) hi-hats." } };
 
           const chDecay = s.knobValues?.CH_DECAY ?? 50;
           const ohDecay = s.knobValues?.OH_DECAY ?? 50;
-          
+
           // Require contrast: Short CH and Long OH
           if (chDecay < 40 && ohDecay > 60) return { pass: true };
-          
-          return { 
-            pass: false, 
-            message: { 
-              es: "Busca contraste: CH corto (bajo Decay) para el ritmo, OH largo (alto Decay) para el aire.", 
-              en: "Seek contrast: Short CH (low Decay) for rhythm, Long OH (high Decay) for air." 
-            } 
+
+          return {
+            pass: false,
+            message: {
+              es: "Busca contraste: CH corto (bajo Decay) para el ritmo, OH largo (alto Decay) para el aire.",
+              en: "Seek contrast: Short CH (low Decay) for rhythm, Long OH (high Decay) for air."
+            }
           };
         },
       },
@@ -766,6 +770,9 @@ Your mission:
         type: 'pattern',
         target: { CH: [0, 2, 4, 6, 8, 10, 12, 14] },
         inst: ['BD', 'CP', 'CH', 'OH'],
+        knobs: [
+          { voice: 'CH', param: 'DECAY', label: 'CH DECAY' },
+        ],
         check: (s) => {
           const ch = s.p?.CH || [];
           // Pattern check
