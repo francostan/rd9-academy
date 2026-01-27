@@ -351,15 +351,31 @@ function ExerciseInteractive({ exercise, state, progress, pattern, playing, step
 
   if (exercise.type === 'knobs') {
     const targetKey = exercise.target === 'BD' ? 'bd' : exercise.target === 'SD' ? 'sd' : 'hh';
+
+    // Use custom knobs array if defined, otherwise fall back to default behavior
+    const knobsToRender = exercise.knobs
+      ? exercise.knobs.map(k => ({
+          key: `${k.voice}_${k.param}`,
+          label: k.label || k.param,
+          voice: k.voice,
+          param: k.param,
+        }))
+      : VOICES[exercise.target]?.params.slice(0, 4).map(pr => ({
+          key: `${exercise.target}_${pr}`,
+          label: pr,
+          voice: exercise.target,
+          param: pr,
+        }));
+
     return (
       <div className="text-center">
         <div className="flex justify-center gap-3 flex-wrap mb-4">
-          {VOICES[exercise.target]?.params.slice(0, 4).map((pr) => (
+          {knobsToRender?.map((knob) => (
             <Knob
-              key={pr}
-              label={pr}
-              value={knobValues[`${exercise.target}_${pr}`] ?? 50}
-              onChange={(v) => { onKnobChange(`${exercise.target}_${pr}`, v); onStateUpdate(targetKey); }}
+              key={knob.key}
+              label={knob.label}
+              value={knobValues[knob.key] ?? 50}
+              onChange={(v) => { onKnobChange(knob.key, v); onStateUpdate(targetKey); }}
               showValue={!exercise.blind}
             />
           ))}
@@ -370,9 +386,30 @@ function ExerciseInteractive({ exercise, state, progress, pattern, playing, step
 
   if (exercise.type === 'pattern' || exercise.type === 'free') {
     const canExpand = exercise.allowExpand ?? false;
-    
+
+    // Knobs for pattern exercises (optional)
+    const patternKnobs = exercise.knobs?.map(k => ({
+      key: `${k.voice}_${k.param}`,
+      label: k.label || k.param,
+    }));
+
     return (
       <div>
+        {/* Optional Knobs for pattern exercises */}
+        {patternKnobs && patternKnobs.length > 0 && (
+          <div className="flex justify-center gap-3 flex-wrap mb-4">
+            {patternKnobs.map((knob) => (
+              <Knob
+                key={knob.key}
+                label={knob.label}
+                value={knobValues[knob.key] ?? 50}
+                onChange={(v) => onKnobChange(knob.key, v)}
+                showValue
+              />
+            ))}
+          </div>
+        )}
+
         {/* Transport Controls */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
