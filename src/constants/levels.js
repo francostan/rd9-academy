@@ -198,9 +198,9 @@ House: mid TUNE, soft ATTACK, resonant DECAY. Groove that breathes.`,
           
           // Allow passing if they've explored the ranges significantly
           // Berlin: TUNE < 50, ATK > 60, DEC > 50
-          const isBerlin = tune < 55 && atk > 60 && dec > 50;
-          // House: TUNE > 55, ATK < 60, DEC > 60
-          const isHouse = tune > 55 && atk < 60 && dec > 60;
+          const isBerlin = tune <= 55 && atk > 60 && dec > 50;
+          // House: TUNE >= 55, ATK < 60, DEC > 60
+          const isHouse = tune >= 55 && atk < 60 && dec > 60;
           
           if (isBerlin || isHouse) return { pass: true };
           
@@ -287,7 +287,7 @@ The snare says more about your intention than any other element.`,
         id: 'hh',
         title: { es: 'HI-HAT', en: 'HI-HAT' },
         text: {
-          es: `Los hi-hats son las únicas voces digitales de la RD-9—samples, no síntesis.
+          es: `Los hi-hats, crash y ride son las voces digitales de la RD-9—samples, no síntesis.
 Cerrado y abierto comparten la misma fuente. Son respiración: inhalar, exhalar.
 
 CH = el pulso constante, el tic-tac, el paso.
@@ -298,7 +298,7 @@ Cuando programes ambos en el mismo step, solo suena Open.
 
 CH DECAY bajo (20-30) = metálico, preciso, industrial.
 OH DECAY alto (70+) = cola larga, reverberación implícita.`,
-          en: `The hi-hats are the RD-9's only digital voices—samples, not synthesis.
+          en: `The hi-hats, crash, and ride are the RD-9's digital voices—samples, not synthesis.
 Closed and open share the same source. They are breath: inhale, exhale.
 
 CH = the constant pulse, the tick-tock, the step.
@@ -706,7 +706,14 @@ Leave offbeats softer for movement.`,
         type: 'pattern',
         target: { BD: [0, 4, 8, 12], CP: [4, 12] },
         inst: ['BD', 'CP'],
-        check: (s) => s.acc,
+        check: (s) => {
+          const bd = s.p?.BD || [];
+          const cp = s.p?.CP || [];
+          const bdOk = [0, 4, 8, 12].every((x) => bd.includes(x));
+          const cpOk = [4, 12].every((x) => cp.includes(x));
+          if (bdOk && cpOk) return true;
+          return { pass: false, message: { es: 'Programa BD en 1,5,9,13 y CP en 5,13.', en: 'Program BD on 1,5,9,13 and CP on 5,13.' } };
+        },
       },
     ],
   },
@@ -827,7 +834,12 @@ CH DECAY very low (20) = metallic, precise.`,
         type: 'pattern',
         target: { CH: Array.from({ length: 16 }, (_, i) => i) },
         inst: ['BD', 'CP', 'CH', 'OH'],
-        check: (s) => (s.p?.CH || []).length >= 16,
+        check: (s) => {
+          const ch = s.p?.CH || [];
+          const all16 = Array.from({ length: 16 }, (_, i) => i).every((x) => ch.includes(x));
+          if (all16) return true;
+          return { pass: false, message: { es: 'Llena los 16 pasos de CH.', en: 'Fill all 16 CH steps.' } };
+        },
       },
       {
         id: 'oh',
@@ -873,7 +885,13 @@ The space that makes the groove breathe.`,
         type: 'pattern',
         target: { OH: [2, 6, 10, 14] },
         inst: ['BD', 'CP', 'CH', 'OH'],
-        check: (s) => [2, 6, 10, 14].every((x) => s.p?.OH?.includes(x)),
+        check: (s) => {
+          const ohOk = [2, 6, 10, 14].every((x) => s.p?.OH?.includes(x));
+          const ohDecay = s.knobValues?.OH_DECAY ?? 50;
+          if (ohOk && ohDecay >= 60) return true;
+          if (!ohOk) return { pass: false, message: { es: 'OH en pads 3,7,11,15.', en: 'OH on pads 3,7,11,15.' } };
+          return { pass: false, message: { es: 'Sube OH DECAY a 60+ para cola larga.', en: 'Raise OH DECAY to 60+ for long tail.' } };
+        },
       },
     ],
   },
@@ -1173,7 +1191,14 @@ se convierte en el rimshot, el hi-hat abierto.
 El ganzá (shaker constante)
 se convierte en el hi-hat cerrado.
 
-La estructura es la misma. Los timbres cambian.`,
+La estructura es la misma. Los timbres cambian.
+
+Y la diáspora sigue: Ricardo Villalobos (Chile/Berlín)
+lleva el minimal techno a duraciones hipnóticas,
+microloops que respiran con paciencia latinoamericana.
+Amon Tobin (Brasil) deconstruye el sampleo,
+convierte field recordings en arquitectura sonora.
+La electrónica latinoamericana no imita—transforma.`,
           en: `Direct line:
 
 1. Yoruba drums (Nigeria) →
@@ -1193,7 +1218,14 @@ becomes the rimshot, the open hi-hat.
 The ganzá (constant shaker)
 becomes the closed hi-hat.
 
-The structure is the same. The timbres change.`,
+The structure is the same. The timbres change.
+
+And the diaspora continues: Ricardo Villalobos (Chile/Berlin)
+takes minimal techno to hypnotic durations,
+microloops that breathe with Latin American patience.
+Amon Tobin (Brazil) deconstructs sampling,
+turns field recordings into sonic architecture.
+Latin American electronics doesn't imitate—it transforms.`,
         },
         type: 'theory',
         check: (s) => s.ctxLatin,
@@ -1254,7 +1286,13 @@ Samba has "swing" because it breathes.`,
         type: 'pattern',
         target: { BD: [0, 8], RS: [3, 6, 11, 14], CH: [0, 2, 4, 6, 8, 10, 12, 14] },
         inst: ['BD', 'RS', 'CH', 'OH'],
-        check: (s) => (s.p?.RS || []).length >= 4 && (s.p?.BD || []).length <= 3,
+        check: (s) => {
+          const rs = s.p?.RS || [];
+          const bd = s.p?.BD || [];
+          const rsOk = [3, 6, 11, 14].every((x) => rs.includes(x));
+          if (rsOk && bd.length <= 3) return true;
+          return { pass: false, message: { es: 'RS en pads 4,7,12,15. BD máximo 3 golpes.', en: 'RS on pads 4,7,12,15. BD max 3 hits.' } };
+        },
       },
     ],
   },
@@ -1267,7 +1305,7 @@ Samba has "swing" because it breathes.`,
     intro: {
       es: `La historia oficial olvida. O peor: borra activamente.
 
-Delia Derbyshire creó el tema de Doctor Who en 1963—con tijeras,
+Delia Derbyshire dio vida al tema de Doctor Who en 1963—con tijeras,
 cinta magnética y osciladores. No había crédito.
 
 Wendy Carlos hizo "Switched-On Bach" en 1968—el primer álbum
@@ -1279,7 +1317,7 @@ máquina expendedora que "hablaba". Componía antes de que Kraftwerk existiera.
 Las máquinas no tienen género. Las industrias sí.`,
       en: `Official history forgets. Or worse: actively erases.
 
-Delia Derbyshire created the Doctor Who theme in 1963—with scissors,
+Delia Derbyshire brought to life the Doctor Who theme in 1963—with scissors,
 magnetic tape, and oscillators. No credit given.
 
 Wendy Carlos made "Switched-On Bach" in 1968—the first synthesizer
@@ -1302,8 +1340,9 @@ Algorítmica antes de que existiera el término.
 Pauline Oliveros desarrolló "Deep Listening"—práctica de
 escucha radical que influyó en el ambient y el drone.
 
-En los 90s y 2000s: DJ Sprinkles (Terre Thaemlitz)
-cuestionó la narrativa utópica del house.
+En los 90s y 2000s: DJ Sprinkles (Terre Thaemlitz)—artista
+transfemenina que rechaza categorías binarias—cuestionó
+la narrativa utópica del house desde la marginalidad queer.
 The Black Madonna (ahora The Blessed Madonna)
 revivió el house político de Chicago.
 
@@ -1319,8 +1358,9 @@ Algorithmic before the term existed.
 Pauline Oliveros developed "Deep Listening"—a practice of
 radical listening that influenced ambient and drone.
 
-In the 90s and 2000s: DJ Sprinkles (Terre Thaemlitz)
-questioned house's utopian narrative.
+In the 90s and 2000s: DJ Sprinkles (Terre Thaemlitz)—a
+transfeminine artist who rejects binary categories—questioned
+house's utopian narrative from the queer margins.
 The Black Madonna (now The Blessed Madonna)
 revived Chicago's political house.
 
@@ -1418,7 +1458,7 @@ El jazz de la segregación. El punk de la recesión británica.
 Y el techno—de la automatización.
 
 Detroit, 1985. La capital del automóvil se desmorona.
-Las fábricas que prometían futuro ahora lo roban. Desempleo 40%.
+Las fábricas que prometían futuro ahora lo roban. Desempleo récord.
 De las cenizas industriales, tres jóvenes—Juan Atkins, Derrick May,
 Kevin Saunderson—imaginan un futuro que la ciudad ya no puede ofrecer.`,
       en: `Every sonic revolution is born from crisis. Blues emerged from cotton.
@@ -1426,7 +1466,7 @@ Jazz from segregation. Punk from British recession.
 And techno—from automation.
 
 Detroit, 1985. The automobile capital crumbles.
-Factories that promised future now steal it. 40% unemployment.
+Factories that promised future now steal it. Record unemployment.
 From industrial ashes, three young men—Juan Atkins, Derrick May,
 Kevin Saunderson—imagine a future the city can no longer offer.`,
     },
@@ -1560,6 +1600,12 @@ es el groove que el disco siempre buscó.
 Octavos en hi-hat = el latido de un corazón colectivo.
 El backbeat del clap = el gesto de llamada y respuesta.
 
+En 1987, Phuture—DJ Pierre, Spanky, Herb J—graba "Acid Tracks".
+Una TB-303 comprada de segunda mano, manipulada sin manual.
+Ron Hardy la pone en el Music Box. La pista enloquece.
+El acid house nace: un accidente convertido en revolución.
+La 303 no estaba diseñada para esto. Nada lo estaba.
+
 Cada vez que programas un pattern de house,
 estás participando en una tradición de resistencia.`,
           en: `Disco "dies" officially on July 12, 1979.
@@ -1578,6 +1624,12 @@ The 909 arrives in 1984. Its natural swing (55-60%)
 is the groove disco always sought.
 Eighth-note hi-hats = the beat of a collective heart.
 The clap's backbeat = call and response gesture.
+
+In 1987, Phuture—DJ Pierre, Spanky, Herb J—records "Acid Tracks".
+A secondhand TB-303, manipulated without a manual.
+Ron Hardy plays it at the Music Box. The floor goes wild.
+Acid house is born: an accident turned revolution.
+The 303 wasn't designed for this. Nothing was.
 
 Every time you program a house pattern,
 you're participating in a tradition of resistance.`,
@@ -1692,7 +1744,7 @@ No shared history—but bass that vibrates the same in all bodies.`,
         id: 'ber-ctx',
         title: { es: 'CONTEXTO', en: 'CONTEXT' },
         text: {
-          es: `Tresor abre en 1991. Literalmente: bóveda de un banco nazi,
+          es: `Tresor abre en 1991. Literalmente: bóveda de unos grandes almacenes abandonados,
 bajo tierra, sin ventanas, sin tiempo.
 Detroit exporta su sonido. Berlín lo recibe, lo endurece, lo oscurece.
 
@@ -1713,7 +1765,7 @@ TUNE muy bajo (40-50), sub-frecuencias que no escuchas—sientes.
 DECAY largo, resonancia que llena el espacio.
 ATTACK agresivo, cada golpe es una declaración.
 Filter LPF = niebla industrial, el sonido emergiendo y sumergiéndose.`,
-          en: `Tresor opens in 1991. Literally: a Nazi bank vault,
+          en: `Tresor opens in 1991. Literally: an abandoned department store vault,
 underground, no windows, no time.
 Detroit exports its sound. Berlin receives it, hardens it, darkens it.
 
@@ -1821,7 +1873,7 @@ Everything covered in fog. Sound emerges slowly.`,
     title: { es: 'HARDGROOVE', en: 'HARDGROOVE' },
     sub: { es: 'UK 1995-2005', en: 'UK 1995-2005' },
     color: '#ef4444',
-    ctx: { es: 'Birmingham, Londres — Ben Sims, Surgeon, Regis, Ruskin', en: 'Birmingham, London — Ben Sims, Surgeon, Regis, Ruskin' },
+    ctx: { es: 'Birmingham — Surgeon, Regis, Ruskin | Londres — Ben Sims', en: 'Birmingham — Surgeon, Regis, Ruskin | London — Ben Sims' },
     intro: {
       es: `1994. El gobierno británico aprueba la Criminal Justice Act.
 Artículo 63: prohíbe reuniones no autorizadas donde se toque
@@ -1843,7 +1895,8 @@ The response wasn't silence. It was volume.`,
         text: {
           es: `Birmingham y Londres responden con rabia canalizada.
 Si el gobierno quiere oscuridad, la tendrá.
-Ben Sims, Surgeon, Regis, James Ruskin—el "Birmingham sound".
+Surgeon, Regis, James Ruskin—el "Birmingham sound".
+Ben Sims desde Londres aporta su propio hardgroove: preciso, funcional, implacable.
 
 Los toms se vuelven protagonistas. Conversación tribal.
 El rimshot como punctuación agresiva.
@@ -1861,7 +1914,8 @@ es un acto político.
 Cada tom programado en tu RD-9 es eco de esa resistencia.`,
           en: `Birmingham and London respond with channeled rage.
 If the government wants darkness, they'll have it.
-Ben Sims, Surgeon, Regis, James Ruskin—the "Birmingham sound".
+Surgeon, Regis, James Ruskin—the "Birmingham sound".
+Ben Sims from London brings his own hardgroove: precise, functional, relentless.
 
 Toms become protagonists. Tribal conversation.
 The rimshot as aggressive punctuation.

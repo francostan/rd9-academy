@@ -85,7 +85,6 @@ export function HomeView({
               {/* Level Cards */}
               <div className="space-y-2">
                 {chapter.levels.map((level) => {
-                  const unlocked = progress.unlocked.includes(level.id);
                   const done = level.exercises.filter((e) =>
                     progress.done.includes(e.id),
                   ).length;
@@ -94,27 +93,26 @@ export function HomeView({
                   return (
                     <button
                       key={level.id}
-                      onClick={() => unlocked && onLevelSelect(level.id)}
-                      disabled={!unlocked}
-                      className={`w-full p-0 text-left transition-all ${unlocked ? "" : "opacity-30 cursor-not-allowed"}`}
+                      onClick={() => onLevelSelect(level.id)}
+                      className="w-full p-0 text-left transition-all"
                     >
                       <div
-                        className={`border-2 p-3 ${unlocked ? "bg-[#f2f2eb] border-[#888] shadow-[0_3px_0_#666,0_4px_4px_rgba(0,0,0,0.3)] active:shadow-[0_1px_0_#666] active:translate-y-[2px]" : "bg-[#ccc] border-[#999]"}`}
+                        className="border-2 p-3 bg-[#f2f2eb] border-[#888] shadow-[0_3px_0_#666,0_4px_4px_rgba(0,0,0,0.3)] active:shadow-[0_1px_0_#666] active:translate-y-[2px]"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="flex flex-col items-center">
                               <div
-                                className={`w-3 h-1 mb-1 ${complete ? "bg-[#33cc33] shadow-[0_0_6px_#33cc33]" : unlocked ? "bg-[#ff5f00] shadow-[0_0_4px_#ff5f00]" : "bg-[#888]"}`}
+                                className={`w-3 h-1 mb-1 ${complete ? "bg-[#33cc33] shadow-[0_0_6px_#33cc33]" : "bg-[#ff5f00] shadow-[0_0_4px_#ff5f00]"}`}
                               />
                               <div
-                                className={`w-10 h-10 flex flex-col items-center justify-start pt-1 border-2 ${unlocked ? "bg-[#333] border-[#555] shadow-[0_2px_0_#111]" : "bg-[#666] border-[#555]"}`}
+                                className="w-10 h-10 flex flex-col items-center justify-start pt-1 border-2 bg-[#333] border-[#555] shadow-[0_2px_0_#111]"
                               >
                                 <div className="w-5 h-1.5 bg-[#1a1a1a] shadow-[inset_0_1px_2px_rgba(0,0,0,0.6)] mb-1" />
                                 <span
                                   className="text-[11px] font-bold"
                                   style={{
-                                    color: unlocked ? C.orange : "#999",
+                                    color: C.orange,
                                   }}
                                 >
                                   {level.n}
@@ -124,7 +122,7 @@ export function HomeView({
                             <div>
                               <div
                                 className="text-[11px] font-bold uppercase tracking-wide"
-                                style={{ color: unlocked ? C.ink : "#666" }}
+                                style={{ color: C.ink }}
                               >
                                 {t(level.title)}
                               </div>
@@ -139,7 +137,7 @@ export function HomeView({
                           <div className="flex items-center gap-3">
                             <span
                               className="text-[10px] font-mono"
-                              style={{ color: unlocked ? C.ink : "#888" }}
+                              style={{ color: C.ink }}
                             >
                               {done}/{level.exercises.length}
                             </span>
@@ -148,12 +146,10 @@ export function HomeView({
                               style={{
                                 color: complete
                                   ? "#33cc33"
-                                  : unlocked
-                                    ? C.orange
-                                    : "#888",
+                                  : C.orange,
                               }}
                             >
-                              {complete ? "●" : unlocked ? "▸" : "○"}
+                              {complete ? "●" : "▸"}
                             </span>
                           </div>
                         </div>

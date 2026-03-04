@@ -1,6 +1,6 @@
 /**
  * RD-9 Voice Definitions
- * 11 analog drum voices with their parameters
+ * 11 drum voices (7 analog, 4 sample-based) with their parameters
  */
 export const VOICES = {
   BD: { name: 'BASS DRUM', color: '#ff6b35', params: ['TUNE', 'LEVEL', 'ATTACK', 'DECAY', 'P.DEPTH', 'PITCH'] },

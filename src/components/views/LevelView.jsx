@@ -83,13 +83,13 @@ export function LevelView({ levelId, exerciseIndex: initialExerciseIndex = 0, pr
 
   const handleConfirm = () => {
     // If it's a simple theory/explore read, just mark done
-    if (exercise.type === 'theory' || exercise.type === 'explore') {
+    if (exercise.type === 'theory' || exercise.type === 'explore' || exercise.type === 'final') {
       handleStateUpdate(getStateKey(exercise.id));
       return;
     }
 
     // Explicit validation for interactive exercises
-    const result = exercise.check({ ...state, p: pattern, knobValues });
+    const result = exercise.check({ ...state, p: pattern, knobValues, patternLength });
     
     if (result === true || result?.pass === true) {
       handleStateUpdate(getStateKey(exercise.id));
@@ -293,7 +293,7 @@ export function LevelView({ levelId, exerciseIndex: initialExerciseIndex = 0, pr
           <button onClick={() => onNavigate('/playground')} className="px-3 py-1.5 border-2 border-[#ff5f00] bg-[#ff5f00]/10 text-[8px] font-bold uppercase tracking-wider shadow-[0_2px_0_#993800] active:shadow-none active:translate-y-[2px] transition-all" style={{ color: C.orange }}>RD-9 ▶</button>
           {!isDone ? (
             <button onClick={handleConfirm} className="px-4 py-1.5 border-2 border-[#888] bg-[#f2f2eb] text-[8px] font-bold uppercase tracking-wider shadow-[0_2px_0_#666] active:shadow-none active:translate-y-[2px] transition-all" style={{ color: C.orange }}>
-              {(exercise.type === 'theory' || exercise.type === 'explore') 
+              {(exercise.type === 'theory' || exercise.type === 'explore' || exercise.type === 'final')
                 ? (lang === 'es' ? 'LEÍDO' : 'READ') 
                 : (lang === 'es' ? 'VERIFICAR' : 'VERIFY')}
             </button>

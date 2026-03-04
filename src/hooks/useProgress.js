@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { LEVELS } from '@/constants';
 
 const STORAGE_KEY = 'rd9-academy-progress';
-const DEFAULT_PROGRESS = { done: [], unlocked: [1] };
+const DEFAULT_PROGRESS = { done: [], unlocked: Array.from({ length: 16 }, (_, i) => i + 1) };
 
 export function useProgress() {
   const [progress, setProgress] = useState(() => {
@@ -30,17 +30,6 @@ export function useProgress() {
 
     const done = [...progress.done, exerciseId];
     let unlocked = [...progress.unlocked];
-
-    if (currentLevelId) {
-      const level = LEVELS.find((l) => l.id === currentLevelId);
-      const levelComplete = level?.exercises.every((e) => done.includes(e.id));
-      const nextLevelExists = currentLevelId < LEVELS.length;
-      const nextNotUnlocked = !unlocked.includes(currentLevelId + 1);
-
-      if (levelComplete && nextLevelExists && nextNotUnlocked) {
-        unlocked.push(currentLevelId + 1);
-      }
-    }
 
     setProgress({ done, unlocked });
   };
