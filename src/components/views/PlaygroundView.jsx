@@ -1275,7 +1275,7 @@ export function PlaygroundView({ onBack }) {
                         const url = URL.createObjectURL(recordedBlob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = `rd9-pattern-${Date.now()}.webm`;
+                        a.download = `rd9-pattern-${Date.now()}.wav`;
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);

@@ -9,6 +9,7 @@ import {
   synthesizeOH,
   synthesizeCR,
   synthesizeRD,
+  encodeWAV,
 } from '@/audio';
 
 // All voices use synthesis
@@ -58,9 +59,9 @@ export function useAudioEngine() {
   const accentLevelRef = useRef(accentLevel);
   const waveAttackRef = useRef(waveAttack);
   const waveSustainRef = useRef(waveSustain);
-  const mediaRecorderRef = useRef(null);
-  const recordedChunksRef = useRef([]);
-  const recorderNodeRef = useRef(null);
+  const scriptNodeRef = useRef(null);
+  const silentGainRef = useRef(null);
+  const recordedChannelsRef = useRef([[], []]);
 
   // Keep refs updated
   useEffect(() => {
@@ -259,48 +260,36 @@ export function useAudioEngine() {
   }, [initAudio]);
 
   // Start recording audio output
+  // Captures raw PCM directly from the graph (via ScriptProcessorNode) instead of
+  // going through MediaRecorder/webm, so the exported file is lossless full-quality WAV.
   const startRecording = useCallback(() => {
     const ctx = ctxRef.current;
-    if (!ctx || isRecording) return false;
+    if (!ctx || isRecording || !globalClipper) return false;
 
     try {
-      // Create a MediaStreamDestination to capture audio
-      const recorderNode = ctx.createMediaStreamDestination();
-      recorderNodeRef.current = recorderNode;
+      const numChannels = 2;
+      const bufferSize = 4096;
+      const scriptNode = ctx.createScriptProcessor(bufferSize, numChannels, numChannels);
+      scriptNodeRef.current = scriptNode;
+      recordedChannelsRef.current = [[], []];
 
-      // Connect the globalClipper to the recorder (it's already connected to ctx.destination)
-      if (globalClipper) {
-        globalClipper.connect(recorderNode);
-      }
+      // ScriptProcessorNode only fires onaudioprocess while part of an active
+      // graph reaching the destination, so route through a silent gain node
+      // to avoid audibly duplicating the output.
+      const silentGain = ctx.createGain();
+      silentGain.gain.value = 0;
+      silentGainRef.current = silentGain;
 
-      // Set up MediaRecorder
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-        ? 'audio/webm;codecs=opus'
-        : 'audio/webm';
+      globalClipper.connect(scriptNode);
+      scriptNode.connect(silentGain);
+      silentGain.connect(ctx.destination);
 
-      const mediaRecorder = new MediaRecorder(recorderNode.stream, { mimeType });
-      mediaRecorderRef.current = mediaRecorder;
-      recordedChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          recordedChunksRef.current.push(e.data);
+      scriptNode.onaudioprocess = (e) => {
+        for (let ch = 0; ch < numChannels; ch++) {
+          recordedChannelsRef.current[ch].push(new Float32Array(e.inputBuffer.getChannelData(ch)));
         }
       };
 
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunksRef.current, { type: mimeType });
-        setRecordedBlob(blob);
-        setIsRecording(false);
-
-        // Clean up recorder node
-        if (recorderNodeRef.current) {
-          recorderNodeRef.current.disconnect();
-          recorderNodeRef.current = null;
-        }
-      };
-
-      mediaRecorder.start(100);
       setIsRecording(true);
       return true;
     } catch (err) {
@@ -310,11 +299,38 @@ export function useAudioEngine() {
     }
   }, [isRecording]);
 
-  // Stop recording
+  // Stop recording and encode captured PCM into a WAV blob
   const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
+    const ctx = ctxRef.current;
+    const scriptNode = scriptNodeRef.current;
+    if (!scriptNode) return;
+
+    scriptNode.onaudioprocess = null;
+    if (globalClipper) {
+      try { globalClipper.disconnect(scriptNode); } catch (e) {}
     }
+    scriptNode.disconnect();
+    if (silentGainRef.current) {
+      silentGainRef.current.disconnect();
+      silentGainRef.current = null;
+    }
+    scriptNodeRef.current = null;
+
+    const channels = recordedChannelsRef.current.map((chunks) => {
+      const length = chunks.reduce((sum, c) => sum + c.length, 0);
+      const merged = new Float32Array(length);
+      let offset = 0;
+      for (const chunk of chunks) {
+        merged.set(chunk, offset);
+        offset += chunk.length;
+      }
+      return merged;
+    });
+
+    const blob = encodeWAV(channels, ctx?.sampleRate || 44100);
+    setRecordedBlob(blob);
+    setIsRecording(false);
+    recordedChannelsRef.current = [[], []];
   }, []);
 
   // Clear recorded blob
