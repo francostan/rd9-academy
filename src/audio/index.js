@@ -9,3 +9,5 @@ export {
   synthesizeCR,
   synthesizeRD,
 } from './synthesis';
+
+export { encodeWAV } from './wavEncoder';
